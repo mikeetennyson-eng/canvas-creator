@@ -266,8 +266,7 @@ export default function CanvasEditor() {
     const x = (e.clientX - rect.left - panX) / zoom;
     const y = (e.clientY - rect.top - panY) / zoom;
     const id = `icon-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const svg_url = generateIconDataUrl(icon.category, icon.name, 128);
-
+    const svg_url = icon.svg_url;
     addElement({ id, type: 'icon', x, y, width: 80, height: 80, rotation: 0, opacity: 1, zIndex: 0, iconData: icon, svg_url });
     trackUsedIcon(icon);
   }, [addElement, trackUsedIcon, zoom, panX, panY]);

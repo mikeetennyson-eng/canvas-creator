@@ -6,7 +6,7 @@ import { useIconRenderer, generateIconDataUrl } from '@/hooks/useIconRenderer';
 import type { IconData } from '@/types/editor';
 
 function IconCard({ icon }: { icon: IconData }) {
-  const dataUrl = useIconRenderer(icon.category, icon.name, 48);
+  const dataUrl = icon.svg_url;
   const addElement = useCanvasStore((s) => s.addElement);
   const trackUsedIcon = useIconStore((s) => s.trackUsedIcon);
 
