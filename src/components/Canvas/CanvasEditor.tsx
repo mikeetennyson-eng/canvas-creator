@@ -58,7 +58,7 @@ function CanvasIcon({ element, isSelected, onSelect }: { element: CanvasElement;
           });
         }}
       />
-      {isSelected && <Transformer ref={trRef} rotateEnabled enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']} />}
+      {isSelected && <Transformer ref={trRef} rotateEnabled enabledAnchors={['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']} />}
     </>
   );
 }
@@ -111,7 +111,7 @@ function CanvasShape({ element, isSelected, onSelect }: { element: CanvasElement
       ) : (
         <Rect {...commonProps} width={element.width} height={element.height} cornerRadius={4} />
       )}
-      {isSelected && <Transformer ref={trRef} rotateEnabled />}
+      {isSelected && <Transformer ref={trRef} rotateEnabled enabledAnchors={['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']} />}
     </>
   );
 }
