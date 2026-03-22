@@ -1,4 +1,4 @@
-import { RotateCw, Move, Eye, Palette, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { RotateCw, Move, Eye, Palette, Trash2, ArrowUp, ArrowDown, Crop } from 'lucide-react';
 import { useCanvasStore } from '@/stores/canvasStore';
 
 export default function PropertiesPanel() {
@@ -165,8 +165,24 @@ export default function PropertiesPanel() {
         </fieldset>
       </div>
 
-      {/* Delete */}
-      <div className="border-t border-panel-border p-3">
+      {/* Actions */}
+      <div className="border-t border-panel-border p-3 space-y-2">
+        {/* Crop button - only for icons */}
+        {selected.type === 'icon' && (
+          <button
+            onClick={() => update({ cropMode: !selected.cropMode })}
+            className={`flex w-full items-center justify-center gap-2 rounded-lg border py-2 text-sm font-medium transition-all active:scale-[0.97] ${
+              selected.cropMode
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-input text-muted-foreground hover:bg-secondary hover:text-foreground'
+            }`}
+          >
+            <Crop className="h-3.5 w-3.5" />
+            {selected.cropMode ? 'Editing Crop...' : 'Crop'}
+          </button>
+        )}
+        
+        {/* Delete */}
         <button
           onClick={() => removeElement(selected.id)}
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/30 py-2 text-sm font-medium text-destructive transition-all hover:bg-destructive/10 active:scale-[0.97]"
@@ -178,3 +194,4 @@ export default function PropertiesPanel() {
     </div>
   );
 }
+
