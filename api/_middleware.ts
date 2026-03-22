@@ -10,48 +10,42 @@ dotenv.config();
 
 let dbConnected = false;
 
-const createApp = (): Express => {
-  const app = express();
-  
-  // Middleware
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ limit: '10mb', extended: true }));
-  
-  const CLIENT_URLS = (process.env.CLIENT_URL || 'http://localhost:8080').split(',');
-  
-  app.use(
-    cors({
-      origin: CLIENT_URLS,
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-    })
-  );
+const app: Express = express();
 
-  // Health check endpoint
-  app.get('/api/health', (req: Request, res: Response) => {
-    res.status(200).json({ 
-      message: 'Server is running', 
-      timestamp: new Date(),
-      dbConnected 
-    });
+// Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+const CLIENT_URLS = (process.env.CLIENT_URL || 'http://localhost:8080').split(',');
+
+app.use(
+  cors({
+    origin: CLIENT_URLS,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+
+// Health check endpoint
+app.get('/api/health', (req: Request, res: Response) => {
+  res.status(200).json({ 
+    message: 'Server is running', 
+    timestamp: new Date(),
+    dbConnected 
   });
+});
 
-  // API Routes
-  app.use('/api/auth', authRoutes);
+// API Routes
+app.use('/api/auth', authRoutes);
 
-  // 404 handler
-  app.use('*', (req: Request, res: Response) => {
-    res.status(404).json({ message: 'Route not found' });
-  });
+// 404 handler
+app.use('*', (req: Request, res: Response) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
-  // Error handling middleware
-  app.use(errorHandler);
-
-  return app;
-};
-
-const app = createApp();
+// Error handling middleware
+app.use(errorHandler);
 
 export const connectDatabase = async () => {
   if (!dbConnected) {

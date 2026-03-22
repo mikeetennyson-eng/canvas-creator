@@ -6,10 +6,5 @@ export default async (req: VercelRequest, res: VercelResponse) => {
   await connectDatabase();
   
   // Handle the request through Express
-  return new Promise((resolve) => {
-    app(req as any, res as any);
-    res.on('finish', () => {
-      resolve(null);
-    });
-  });
+  app(req as any, res as any);
 };
