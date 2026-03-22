@@ -1,0 +1,6 @@
+backend/scripts
+backend/dist
+.git
+.env
+.env.local
+*.md
