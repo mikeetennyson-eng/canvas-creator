@@ -29,6 +29,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchUserCanvases();
+    // Refresh subscription when profile page loads
+    refreshSubscription();
   }, []);
 
   const fetchUserCanvases = async () => {

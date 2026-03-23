@@ -77,10 +77,9 @@ export default function PricingPage() {
               description: 'Your subscription has been upgraded to Professional plan.',
             });
 
-            // Redirect to profile after a short delay
-            setTimeout(() => {
-              navigate('/profile');
-            }, 1500);
+            // Wait for state to propagate before redirecting
+            await new Promise(resolve => setTimeout(resolve, 300));
+            navigate('/profile');
           } catch (error) {
             console.error('[Upgrade] Verification error:', error);
             const errorMessage = error instanceof Error ? error.message : 'Payment verification failed';
