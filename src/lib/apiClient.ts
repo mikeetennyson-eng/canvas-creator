@@ -58,6 +58,19 @@ export interface RazorpayOrderResponse {
   order: RazorpayOrder;
 }
 
+export interface RazorpaySubscription {
+  subscriptionId: string;
+  planId: string;
+  status: string;
+  paymentLink: string;
+  shortUrl: string;
+}
+
+export interface RazorpaySubscriptionResponse {
+  message: string;
+  subscription: RazorpaySubscription;
+}
+
 class ApiClient {
   private baseURL: string;
 
@@ -210,6 +223,13 @@ class ApiClient {
     return this.request<RazorpayOrderResponse>('/subscription/create-order', {
       method: 'POST',
       body: JSON.stringify({}),
+    });
+  }
+
+  async createRazorpaySubscription(autoRenewal: boolean = true): Promise<RazorpaySubscriptionResponse> {
+    return this.request<RazorpaySubscriptionResponse>('/subscription/create-subscription', {
+      method: 'POST',
+      body: JSON.stringify({ autoRenewal }),
     });
   }
 

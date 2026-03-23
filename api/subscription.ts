@@ -1,7 +1,13 @@
 import { verifyToken as verifyJWT } from './config/jwt.js';
 import Subscription from './models/Subscription.js';
 import { connectDB } from './config/db.js';
-import { createRazorpayOrder, verifyPaymentSignature } from './config/razorpay.js';
+import { 
+  createRazorpayOrder, 
+  verifyPaymentSignature,
+  createRazorpayPlan,
+  createRazorpaySubscription,
+  getSubscriptionDetails,
+} from './config/razorpay.js';
 import { handleRazorpayWebhook } from './webhooks/razorpay.js';
 import { checkExpiringSubscriptions } from './services/autoRenewal.js';
 
@@ -289,6 +295,93 @@ export async function handleSubscription(req: any): Promise<Response> {
         console.error('Error creating Razorpay order:', error);
         return new Response(
           JSON.stringify({ message: 'Failed to create order' }),
+          { status: 500 }
+        );
+      }
+    }
+
+    // Create Razorpay subscription (recurring billing)
+    if (path.match(/\/subscription\/create-subscription$/) && req.method === 'POST') {
+      try {
+        const body = await parseBody(req);
+        const { autoRenewal } = body;
+
+        console.log('[Subscription] Creating recurring subscription for user:', userId);
+
+        // Step 1: Get or create the professional plan
+        // We'll use a fixed plan ID for all users (plan for 400 INR/month)
+        // In production, you would first check if plan exists via Razorpay API
+        const PROFESSIONAL_PLAN_ID = process.env.RAZORPAY_PROFESSIONAL_PLAN_ID || null;
+
+        let planId = PROFESSIONAL_PLAN_ID;
+
+        // If plan ID not in env, create one (runs once, then save to env)
+        if (!planId) {
+          console.log('[Subscription] Creating new Razorpay plan for professional tier...');
+          const plan = await createRazorpayPlan(
+            'Canvas Creator Professional',
+            40000, // 400 INR in paise
+            1, // Interval
+            'monthly'
+          );
+          planId = plan.id;
+          console.log('[Subscription] Plan created:', planId);
+        }
+
+        // Step 2: Create subscription for the user
+        const subscription = await createRazorpaySubscription(
+          userId,
+          planId,
+          1, // quantity
+          0 // total_count (0 = infinite)
+        );
+
+        console.log('[Subscription] Subscription created:', subscription.id);
+
+        // Step 3: Save subscription to database
+        let userSubscription = await Subscription.findOne({ userId });
+
+        if (!userSubscription) {
+          return new Response(
+            JSON.stringify({ message: 'User subscription not found' }),
+            { status: 404 }
+          );
+        }
+
+        // Store Razorpay subscription data
+        userSubscription.subscriptionId = subscription.id;
+        userSubscription.planId = planId;
+        userSubscription.autoRenewal = autoRenewal !== false; // Default true for recurring
+        // Only set status if it's a valid SubscriptionStatus, otherwise keep as 'active'
+        const validStatuses = ['active', 'inactive', 'cancelled', 'expired'];
+        if (validStatuses.includes(subscription.status)) {
+          userSubscription.status = subscription.status as any;
+        }
+
+        await userSubscription.save();
+
+        console.log('[Subscription] Subscription saved to DB:', userSubscription._id);
+
+        return new Response(
+          JSON.stringify({
+            message: 'Subscription created successfully',
+            subscription: {
+              subscriptionId: subscription.id,
+              planId: planId,
+              status: subscription.status,
+              shortUrl: subscription.short_url,
+              paymentLink: subscription.short_url,
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      } catch (error) {
+        console.error('Error creating subscription:', error);
+        return new Response(
+          JSON.stringify({ 
+            message: 'Failed to create subscription',
+            error: error instanceof Error ? error.message : 'Unknown error'
+          }),
           { status: 500 }
         );
       }

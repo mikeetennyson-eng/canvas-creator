@@ -18,6 +18,7 @@ export default function PricingPage() {
   const { subscription, isLoading, refreshSubscription } = useSubscription();
   const { toast } = useToast();
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentType, setPaymentType] = useState<'recurring' | 'onetime'>('recurring');
 
   // Load Razorpay script
   useEffect(() => {
@@ -32,10 +33,36 @@ export default function PricingPage() {
     };
   }, []);
 
-  const handleUpgrade = async () => {
+  const handleUpgradeRecurring = async () => {
     try {
       setProcessingPayment(true);
-      console.log('[Upgrade] Starting upgrade flow...');
+      console.log('[Upgrade] Starting recurring subscription flow...');
+
+      // Step 1: Create Razorpay subscription
+      console.log('[Upgrade] Creating recurring subscription...');
+      const subscriptionResponse = await apiClient.createRazorpaySubscription(true);
+      const paymentLink = subscriptionResponse.subscription.paymentLink;
+      console.log('[Upgrade] Subscription created:', subscriptionResponse.subscription.subscriptionId);
+
+      // Step 2: Redirect to payment link
+      console.log('[Upgrade] Redirecting to payment link:', paymentLink);
+      window.location.href = paymentLink;
+    } catch (error) {
+      console.error('[Upgrade] Recurring subscription error:', error);
+      setProcessingPayment(false);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create subscription';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpgradeOneTime = async () => {
+    try {
+      setProcessingPayment(true);
+      console.log('[Upgrade] Starting one-time payment flow...');
 
       // Step 1: Create Razorpay order
       console.log('[Upgrade] Creating Razorpay order...');
@@ -55,7 +82,7 @@ export default function PricingPage() {
         amount: orderResponse.order.amount,
         currency: orderResponse.order.currency,
         name: 'Canvas Creator',
-        description: 'Professional Plan Subscription',
+        description: 'Professional Plan - One-Time Payment',
         order_id: orderId,
         handler: async (response: any) => {
           console.log('[Upgrade] Payment successful, verifying...', response);
@@ -132,6 +159,14 @@ export default function PricingPage() {
         description: errorMessage,
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleUpgrade = () => {
+    if (paymentType === 'recurring') {
+      handleUpgradeRecurring();
+    } else {
+      handleUpgradeOneTime();
     }
   };
 
@@ -229,13 +264,47 @@ export default function PricingPage() {
                   Current Plan
                 </Button>
               ) : (
-                <Button
-                  onClick={handleUpgrade}
-                  disabled={processingPayment || isLoading}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                >
-                  {processingPayment ? 'Processing...' : 'Upgrade Now'}
-                </Button>
+                <div className="space-y-3">
+                  {/* Payment type toggle */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPaymentType('recurring')}
+                      className={`flex-1 px-3 py-2 text-sm rounded-md font-medium transition ${
+                        paymentType === 'recurring'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Auto-Renewing
+                    </button>
+                    <button
+                      onClick={() => setPaymentType('onetime')}
+                      className={`flex-1 px-3 py-2 text-sm rounded-md font-medium transition ${
+                        paymentType === 'onetime'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      One-Time
+                    </button>
+                  </div>
+
+                  {/* Payment type info */}
+                  <div className="text-xs text-gray-600 text-center">
+                    {paymentType === 'recurring' 
+                      ? 'Auto-renews every 30 days, cancel anytime'
+                      : 'One-time payment, 30 days access'}
+                  </div>
+
+                  {/* Upgrade button */}
+                  <Button
+                    onClick={handleUpgrade}
+                    disabled={processingPayment || isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    {processingPayment ? 'Processing...' : 'Upgrade Now'}
+                  </Button>
+                </div>
               )}
 
               <ul className="space-y-4">
@@ -255,15 +324,15 @@ export default function PricingPage() {
 
         {/* Subscription Status Info */}
         {subscription && subscription.plan === 'professional' && subscription.daysRemaining !== null && (
-          <div className="max-w-2xl mx-auto bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex gap-3">
-            <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div className="max-w-2xl mx-auto bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
+            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-yellow-900 mb-1">
+              <p className="font-semibold text-blue-900 mb-1">
                 Your subscription expires in {subscription.daysRemaining} days
               </p>
-              <p className="text-sm text-yellow-800">
+              <p className="text-sm text-blue-800">
                 {subscription.autoRenewal 
-                  ? 'Auto-renewal is enabled. Your subscription will automatically renew.'
+                  ? '✓ Auto-renewal is enabled. Your subscription will automatically renew on the expiry date.'
                   : 'Auto-renewal is disabled. You will need to renew your subscription manually.'}
               </p>
             </div>
@@ -275,27 +344,41 @@ export default function PricingPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-8">Frequently Asked Questions</h2>
           <div className="space-y-6">
             <div>
+              <h3 className="font-semibold text-gray-900 mb-2">What's the difference between Auto-Renewing and One-Time payment?</h3>
+              <p className="text-gray-600">
+                <strong>Auto-Renewing:</strong> Your subscription automatically renews every 30 days. You'll receive a reminder 3 days before renewal and can cancel anytime.
+                <br/>
+                <strong>One-Time:</strong> A single 30-day subscription for ₹400. After 30 days, you can purchase again if needed.
+              </p>
+            </div>
+            <div>
               <h3 className="font-semibold text-gray-900 mb-2">Can I cancel my subscription anytime?</h3>
               <p className="text-gray-600">
-                Yes, you can cancel your subscription at any time. You'll have access to all professional features until the end of your billing period.
+                Yes, you can cancel your auto-renewing subscription at any time from your profile. You'll have access to all professional features until the end of your current billing period. For one-time payments, you can reach out to support for a refund within 7 days of purchase.
               </p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">What happens when my subscription expires?</h3>
               <p className="text-gray-600">
-                Your account will automatically downgrade to the free plan. You can export your diagrams before the downgrade takes effect.
+                If auto-renewal is enabled, your subscription will automatically renew on the expiry date and you'll be charged ₹400. If not enabled or if the payment fails, your account will automatically downgrade to the free plan. You can export your diagrams before the downgrade takes effect.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">What if my auto-renewal payment fails?</h3>
+              <p className="text-gray-600">
+                Razorpay will attempt to retry the payment up to 2 more times. If all attempts fail, your subscription will be halted and your account will downgrade to the free plan. You can update your payment method and try again from your profile.
               </p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Are there any setup fees?</h3>
               <p className="text-gray-600">
-                No, there are no setup fees or hidden charges. You only pay the monthly subscription cost.
+                No, there are no setup fees or hidden charges. You only pay ₹400 per 30 days for the professional plan.
               </p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Is my payment secure?</h3>
               <p className="text-gray-600">
-                Yes, we use Razorpay for all payments, which is PCI DSS compliant and uses industry-standard encryption to protect your payment information.
+                Yes, we use Razorpay for all payments, which is PCI DSS compliant and uses industry-standard encryption to protect your payment information. Your card details are never stored on our servers.
               </p>
             </div>
             <div>
