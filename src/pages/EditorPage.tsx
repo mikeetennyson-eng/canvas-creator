@@ -17,6 +17,7 @@ export default function EditorPage() {
   const removeSelected = useCanvasStore((s) => s.removeSelected);
   const selectedIds = useCanvasStore((s) => s.selectedIds);
   const resetCanvas = useCanvasStore((s) => s.resetCanvas);
+  const loadCanvasJSON = useCanvasStore((s) => s.loadCanvasJSON);
   const { isAuthenticated } = useAuth();
   const canvasId = searchParams.get('load');
   const [isSaving, setIsSaving] = useState(false);
@@ -79,10 +80,15 @@ export default function EditorPage() {
       const response = await apiClient.getCanvas(id);
       const canvas = response.canvas;
       const canvasData = JSON.parse(canvas.canvasData);
-      // Load canvas data into store
-      localStorage.setItem('lastLoadedCanvas', JSON.stringify(canvasData));
+      
+      // Load canvas data into Zustand store
+      loadCanvasJSON(JSON.stringify(canvasData));
+      
+      // Save to localStorage for reference
       localStorage.setItem('currentCanvasId', canvas._id);
       localStorage.setItem('currentCanvasTitle', canvas.title);
+      
+      console.log('Canvas loaded successfully');
     } catch (err) {
       console.error('Failed to load canvas:', err);
     }

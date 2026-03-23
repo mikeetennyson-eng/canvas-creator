@@ -1,7 +1,7 @@
 import {
   MousePointer2, Square, Circle, Type, ArrowUpRight,
   Download, FileJson, ScrollText, ZoomIn, ZoomOut,
-  Undo2, Redo2, Sun, Moon, Home, Save,
+  Undo2, Redo2, Sun, Moon, Home, Save, Clock,
 } from 'lucide-react';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { useIconStore } from '@/stores/iconStore';
@@ -136,6 +136,14 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
           >
             <Home className="h-3.5 w-3.5" />
             Home
+          </button>
+
+          <button
+            onClick={() => navigate('/profile')}
+            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
+          >
+            <Clock className="h-3.5 w-3.5" />
+            Recent Edits
           </button>
 
           <div className="mx-1.5 h-5 w-px bg-border" />
