@@ -12,6 +12,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitializing: boolean;
   error: string | null;
   signup: (name: string, email: string, password: string, confirmPassword: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
@@ -26,15 +27,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Check for existing token on mount
   useEffect(() => {
-    const existingToken = apiClient.getToken();
-    if (existingToken) {
-      setToken(existingToken);
-      verifyTokenOnMount(existingToken);
-    }
+    const initAuth = async () => {
+      const existingToken = apiClient.getToken();
+      if (!existingToken) {
+        setIsInitializing(false);
+        return;
+      }
+
+      try {
+        const response = await apiClient.verifyToken(existingToken);
+        setToken(existingToken);
+        setUser({
+          id: response.user.id,
+          email: response.user.email,
+          name: response.user.email.split('@')[0],
+        });
+      } catch (err) {
+        apiClient.removeToken();
+        setToken(null);
+        setUser(null);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
   const verifyTokenOnMount = async (token: string) => {
@@ -45,10 +67,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: response.user.email,
         name: response.user.email.split('@')[0], // Placeholder, ideally get full name
       });
+      return true;
     } catch (err) {
       apiClient.removeToken();
       setToken(null);
       setUser(null);
+      return false;
     }
   };
 
@@ -100,7 +124,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!currentToken) return false;
 
     try {
-      await apiClient.verifyToken(currentToken);
+      const response = await apiClient.verifyToken(currentToken);
+      setUser({
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.email.split('@')[0],
+      });
+      setToken(currentToken);
       return true;
     } catch {
       logout();
@@ -117,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token: isAuthenticated ? token : null,
         isAuthenticated,
         isLoading,
+        isInitializing,
         error,
         signup,
         login,
