@@ -21,12 +21,50 @@ app.use(
   })
 );
 
+let dbConnected = false;
+
+// Load backend routes dynamically on first request
+let authRoutesLoaded = false;
+let loadAuthRoutesError: Error | null = null;
+
+const loadAuthRoutes = async () => {
+  if (authRoutesLoaded) return;
+  
+  try {
+    console.log('Loading backend authentication routes...');
+    const { connectDB } = await import('../backend/src/config/db.js');
+    const authRoutesModule = await import('../backend/src/routes/auth.js');
+    const authRoutes = authRoutesModule.default;
+    
+    // Connect to database
+    try {
+      await connectDB();
+      dbConnected = true;
+      console.log('✅ Database connected');
+    } catch (dbError) {
+      console.error('❌ Database connection error:', dbError);
+      dbConnected = false;
+    }
+    
+    // Mount auth routes
+    app.use('/api/auth', authRoutes);
+    authRoutesLoaded = true;
+    console.log('✅ Auth routes loaded');
+  } catch (error) {
+    console.error('❌ Failed to load auth routes:', error);
+    loadAuthRoutesError = error instanceof Error ? error : new Error(String(error));
+    authRoutesLoaded = false;
+  }
+};
+
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
   console.log('Health check requested');
   res.status(200).json({ 
     message: 'Server is running', 
     timestamp: new Date(),
+    dbConnected,
+    authRoutesLoaded,
     env: {
       mongodb_connected: !!process.env.MONGODB_URI,
       jwt_secret_exists: !!process.env.JWT_SECRET,
@@ -35,13 +73,12 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
-// Test endpoint
-app.post('/api/test', (req: Request, res: Response) => {
-  console.log('Test endpoint hit with body:', req.body);
-  res.status(200).json({ 
-    message: 'Test successful',
-    received: req.body
-  });
+// Middleware to load auth routes before first request
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  if (!authRoutesLoaded && !loadAuthRoutesError) {
+    await loadAuthRoutes();
+  }
+  next();
 });
 
 // 404 handler
