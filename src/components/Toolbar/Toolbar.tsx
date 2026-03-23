@@ -1,7 +1,7 @@
 import {
   MousePointer2, Square, Circle, Type, ArrowUpRight,
   Download, FileJson, ScrollText, ZoomIn, ZoomOut,
-  Undo2, Redo2, Sun, Moon, Home,
+  Undo2, Redo2, Sun, Moon, Home, Save,
 } from 'lucide-react';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { useIconStore } from '@/stores/iconStore';
@@ -18,7 +18,7 @@ const tools: { id: ToolType; icon: typeof MousePointer2; label: string }[] = [
   { id: 'arrow', icon: ArrowUpRight, label: 'Arrow' },
 ];
 
-export default function Toolbar() {
+export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isSaving?: boolean }) {
   const navigate = useNavigate();
   const { activeTool, setActiveTool, zoom, setZoom, getCanvasJSON, elements } = useCanvasStore();
   const usedIcons = useIconStore((s) => s.usedIcons);
@@ -114,6 +114,19 @@ export default function Toolbar() {
             <FileJson className="h-3.5 w-3.5" />
             JSON
           </button>
+
+          <div className="mx-1.5 h-5 w-px bg-border" />
+
+          {onSave && (
+            <button
+              onClick={onSave}
+              disabled={isSaving}
+              className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95 disabled:opacity-50"
+            >
+              <Save className="h-3.5 w-3.5" />
+              {isSaving ? 'Saving...' : 'Save'}
+            </button>
+          )}
 
           <div className="mx-1.5 h-5 w-px bg-border" />
 

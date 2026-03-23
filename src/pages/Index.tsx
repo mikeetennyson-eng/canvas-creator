@@ -65,6 +65,13 @@ export default function Index() {
             {isAuthenticated ? (
               <>
                 <Button
+                  onClick={() => navigate('/profile')}
+                  variant="ghost"
+                  size="sm"
+                >
+                  Profile
+                </Button>
+                <Button
                   onClick={() => navigate('/editor')}
                   variant="default"
                   size="sm"

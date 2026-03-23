@@ -112,6 +112,39 @@ class ApiClient {
     });
   }
 
+  // Canvas endpoints
+  async saveCanvas(data: {
+    _id?: string;
+    title: string;
+    description?: string;
+    canvasData: string;
+    thumbnail?: string;
+  }): Promise<any> {
+    const method = data._id ? 'PUT' : 'POST';
+    return this.request('/canvas/save', {
+      method,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getUserCanvases(): Promise<any> {
+    return this.request('/canvas/list', {
+      method: 'GET',
+    });
+  }
+
+  async getCanvas(id: string): Promise<any> {
+    return this.request(`/canvas/${id}`, {
+      method: 'GET',
+    });
+  }
+
+  async deleteCanvas(id: string): Promise<any> {
+    return this.request(`/canvas/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Token management
   setToken(token: string): void {
     localStorage.setItem('auth_token', token);

@@ -60,14 +60,23 @@ export default function LoginPage() {
             <span className="font-bold text-lg">Canvas Creator</span>
           </Link>
           {isAuthenticated ? (
-            <Button
-              onClick={() => navigate('/editor')}
-              variant="default"
-              size="sm"
-              className="gap-2"
-            >
-              Create <ArrowRight className="w-4 h-4" />
-            </Button>
+            <>
+              <Button
+                onClick={() => navigate('/profile')}
+                variant="ghost"
+                size="sm"
+              >
+                Profile
+              </Button>
+              <Button
+                onClick={() => navigate('/editor')}
+                variant="default"
+                size="sm"
+                className="gap-2"
+              >
+                Create <ArrowRight className="w-4 h-4" />
+              </Button>
+            </>
           ) : (
             <Link to="/">
               <Button variant="ghost">Back Home</Button>
