@@ -1,7 +1,8 @@
 import { handleAuth, handleCanvas } from './handlers.js';
 
-export default async function handler(req: Request): Promise<Response> {
-  const url = new URL(req.url, `https://${req.headers.get('host') || 'localhost'}`);
+export default async function handler(req: any): Promise<Response> {
+  const host = req.headers.get?.('host') || req.headers['host'] || 'localhost';
+  const url = new URL(req.url || '/', `https://${host}`);
   const path = url.pathname;
 
   console.log(`[Vercel Main] ${req.method} ${path}`);

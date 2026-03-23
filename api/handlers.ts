@@ -3,9 +3,47 @@ import Canvas from './models/Canvas.js';
 import User from './models/User.js';
 import './config/db.js';
 
-export async function handleAuth(req: Request): Promise<Response> {
+// Helper to get header from Node.js or Web API request objects
+function getHeader(headers: any, name: string): string | undefined {
+  if (typeof headers.get === 'function') {
+    return headers.get(name);
+  }
+  return headers[name];
+}
+
+// Helper to parse JSON body from Node.js or Web API request objects
+async function parseBody(req: any): Promise<any> {
+  if (req.body) {
+    // Already parsed (some frameworks do this)
+    return req.body;
+  }
+  
+  // Read from readable stream (Node.js)
+  if (req.on) {
+    return new Promise((resolve, reject) => {
+      let data = '';
+      req.on('data', (chunk: Buffer) => {
+        data += chunk.toString();
+      });
+      req.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(e);
+        }
+      });
+      req.on('error', reject);
+    });
+  }
+
+  // Web API Request
+  return req.json();
+}
+
+export async function handleAuth(req: any): Promise<Response> {
   try {
-    const url = new URL(req.url, `https://${req.headers.get('host') || 'localhost'}`);
+    const host = getHeader(req.headers, 'host') || 'localhost';
+    const url = new URL(req.url || '/', `https://${host}`);
     let path = url.pathname;
     
     // Remove query string and trailing slashes for matching
@@ -14,7 +52,7 @@ export async function handleAuth(req: Request): Promise<Response> {
     console.log(`[Auth] Method: ${req.method}, Path: ${path}`);
 
     if (path.match(/\/auth\/signup$/) && req.method === 'POST') {
-      const body = await req.json() as any;
+      const body = await parseBody(req);
       const { name, email, password, confirmPassword } = body;
 
       if (!name || !email || !password || !confirmPassword) {
@@ -45,7 +83,7 @@ export async function handleAuth(req: Request): Promise<Response> {
     }
 
     if (path.match(/\/auth\/login$/) && req.method === 'POST') {
-      const body = await req.json() as any;
+      const body = await parseBody(req);
       const { email, password } = body;
 
       if (!email || !password) {
@@ -71,7 +109,7 @@ export async function handleAuth(req: Request): Promise<Response> {
     }
 
     if (path.match(/\/auth\/verify$/) && req.method === 'POST') {
-      const body = await req.json() as any;
+      const body = await parseBody(req);
       const { token } = body;
 
       if (!token) {
@@ -101,9 +139,10 @@ export async function handleAuth(req: Request): Promise<Response> {
   }
 }
 
-export async function handleCanvas(req: Request): Promise<Response> {
+export async function handleCanvas(req: any): Promise<Response> {
   try {
-    const url = new URL(req.url, `https://${req.headers.get('host') || 'localhost'}`);
+    const host = getHeader(req.headers, 'host') || 'localhost';
+    const url = new URL(req.url || '/', `https://${host}`);
     let path = url.pathname;
     
     // Remove query string and trailing slashes for matching
@@ -112,7 +151,7 @@ export async function handleCanvas(req: Request): Promise<Response> {
     console.log(`[Canvas] Method: ${req.method}, Path: ${path}`);
 
     // Get token
-    const authHeader = req.headers.get('authorization');
+    const authHeader = getHeader(req.headers, 'authorization');
     const token = authHeader?.split(' ')[1];
 
     if (!token) {
@@ -129,7 +168,7 @@ export async function handleCanvas(req: Request): Promise<Response> {
 
     // Save canvas
     if (path.match(/\/canvas\/save$/) && (req.method === 'POST' || req.method === 'PUT')) {
-      const body = await req.json() as any;
+      const body = await parseBody(req);
       const { _id, title, description, canvasData, thumbnail } = body;
 
       if (!title || !canvasData) {

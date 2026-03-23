@@ -1,6 +1,6 @@
 import { handleCanvas } from '../handlers.js';
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: any): Promise<Response> {
   try {
     return handleCanvas(req);
   } catch (error) {
