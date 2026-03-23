@@ -1,36 +1,37 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import app from './_middleware';
+import { handleAuth, handleCanvas } from './handlers.js';
 
-export default async (req: VercelRequest, res: VercelResponse) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  
+export default async function handler(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  const path = url.pathname;
+
+  console.log(`[${new Date().toISOString()}] ${req.method} ${path}`);
+
   try {
-    return new Promise<void>((resolve, reject) => {
-      // Handle the request through Express
-      app(req as any, res as any);
-      
-      // Resolve when response is sent
-      res.on('finish', () => {
-        console.log(`[${new Date().toISOString()}] Response sent with status ${res.statusCode}`);
-        resolve();
-      });
-      
-      res.on('close', () => {
-        resolve();
-      });
-      
-      res.on('error', (err) => {
-        console.error('Response error:', err);
-        reject(err);
-      });
-    });
-  } catch (error) {
-    console.error('Serverless handler error:', error);
-    if (!res.headersSent) {
-      res.status(500).json({ 
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : String(error)
-      });
+    if (path.startsWith('/api/canvas')) {
+      return handleCanvas(req);
     }
+
+    if (path.startsWith('/api/auth')) {
+      return handleAuth(req);
+    }
+
+    if (path === '/api/health') {
+      return new Response(
+        JSON.stringify({
+          message: 'Server is running',
+          timestamp: new Date(),
+          env: {
+            mongodb_connected: !!process.env.MONGODB_URI,
+            jwt_secret_exists: !!process.env.JWT_SECRET,
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    return new Response(JSON.stringify({ message: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+  } catch (error) {
+    console.error('Error:', error);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
-};
+}
