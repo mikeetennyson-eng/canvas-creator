@@ -1,7 +1,7 @@
 import { verifyToken as verifyJWT } from './config/jwt.js';
 import Canvas from './models/Canvas.js';
 import User from './models/User.js';
-import './config/db.js';
+import { connectDB } from './config/db.js';
 
 // Helper to get header from Node.js or Web API request objects
 function getHeader(headers: any, name: string): string | undefined {
@@ -42,6 +42,9 @@ async function parseBody(req: any): Promise<any> {
 
 export async function handleAuth(req: any): Promise<Response> {
   try {
+    // Ensure database connection is established
+    await connectDB();
+    
     const host = getHeader(req.headers, 'host') || 'localhost';
     const url = new URL(req.url || '/', `https://${host}`);
     let path = url.pathname;
@@ -141,6 +144,9 @@ export async function handleAuth(req: any): Promise<Response> {
 
 export async function handleCanvas(req: any): Promise<Response> {
   try {
+    // Ensure database connection is established
+    await connectDB();
+    
     const host = getHeader(req.headers, 'host') || 'localhost';
     const url = new URL(req.url || '/', `https://${host}`);
     let path = url.pathname;
