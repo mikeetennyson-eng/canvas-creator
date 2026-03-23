@@ -1,7 +1,7 @@
 import { handleAuth, handleCanvas } from './handlers.js';
 
 export default async function handler(req: Request): Promise<Response> {
-  const url = new URL(req.url);
+  const url = new URL(req.url, `https://${req.headers.get('host') || 'localhost'}`);
   const path = url.pathname;
 
   console.log(`[${new Date().toISOString()}] ${req.method} ${path}`);

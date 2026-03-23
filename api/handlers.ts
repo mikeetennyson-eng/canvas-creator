@@ -5,7 +5,7 @@ import './config/db.js';
 
 export async function handleAuth(req: Request): Promise<Response> {
   try {
-    const url = new URL(req.url);
+    const url = new URL(req.url, `https://${req.headers.get('host') || 'localhost'}`);
     const path = url.pathname;
 
     if (path.endsWith('/auth/signup') && req.method === 'POST') {
@@ -97,7 +97,7 @@ export async function handleAuth(req: Request): Promise<Response> {
 
 export async function handleCanvas(req: Request): Promise<Response> {
   try {
-    const url = new URL(req.url);
+    const url = new URL(req.url, `https://${req.headers.get('host') || 'localhost'}`);
     const path = url.pathname;
 
     // Get token
