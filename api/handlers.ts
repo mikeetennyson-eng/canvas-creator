@@ -6,9 +6,14 @@ import './config/db.js';
 export async function handleAuth(req: Request): Promise<Response> {
   try {
     const url = new URL(req.url, `https://${req.headers.get('host') || 'localhost'}`);
-    const path = url.pathname;
+    let path = url.pathname;
+    
+    // Remove query string and trailing slashes for matching
+    path = path.split('?')[0].replace(/\/$/, '');
 
-    if (path.endsWith('/auth/signup') && req.method === 'POST') {
+    console.log(`[Auth] Method: ${req.method}, Path: ${path}`);
+
+    if (path.match(/\/auth\/signup$/) && req.method === 'POST') {
       const body = await req.json() as any;
       const { name, email, password, confirmPassword } = body;
 
@@ -39,7 +44,7 @@ export async function handleAuth(req: Request): Promise<Response> {
       );
     }
 
-    if (path.endsWith('/auth/login') && req.method === 'POST') {
+    if (path.match(/\/auth\/login$/) && req.method === 'POST') {
       const body = await req.json() as any;
       const { email, password } = body;
 
@@ -65,7 +70,7 @@ export async function handleAuth(req: Request): Promise<Response> {
       );
     }
 
-    if (path.endsWith('/auth/verify') && req.method === 'POST') {
+    if (path.match(/\/auth\/verify$/) && req.method === 'POST') {
       const body = await req.json() as any;
       const { token } = body;
 
@@ -88,6 +93,7 @@ export async function handleAuth(req: Request): Promise<Response> {
       }
     }
 
+    console.log(`[Auth] No matching route for ${req.method} ${path}`);
     return new Response(JSON.stringify({ message: 'Not found' }), { status: 404 });
   } catch (error) {
     console.error('Auth error:', error);
@@ -98,7 +104,12 @@ export async function handleAuth(req: Request): Promise<Response> {
 export async function handleCanvas(req: Request): Promise<Response> {
   try {
     const url = new URL(req.url, `https://${req.headers.get('host') || 'localhost'}`);
-    const path = url.pathname;
+    let path = url.pathname;
+    
+    // Remove query string and trailing slashes for matching
+    path = path.split('?')[0].replace(/\/$/, '');
+
+    console.log(`[Canvas] Method: ${req.method}, Path: ${path}`);
 
     // Get token
     const authHeader = req.headers.get('authorization');
@@ -117,7 +128,7 @@ export async function handleCanvas(req: Request): Promise<Response> {
     }
 
     // Save canvas
-    if (path.endsWith('/canvas/save') && (req.method === 'POST' || req.method === 'PUT')) {
+    if (path.match(/\/canvas\/save$/) && (req.method === 'POST' || req.method === 'PUT')) {
       const body = await req.json() as any;
       const { _id, title, description, canvasData, thumbnail } = body;
 
@@ -145,7 +156,7 @@ export async function handleCanvas(req: Request): Promise<Response> {
     }
 
     // Get canvas list
-    if (path.endsWith('/canvas/list') && req.method === 'GET') {
+    if (path.match(/\/canvas\/list$/) && req.method === 'GET') {
       const canvases = await Canvas.find({ userId }).sort({ updatedAt: -1 }).limit(5).select('_id title description thumbnail createdAt updatedAt');
       return new Response(JSON.stringify({ message: 'Canvases retrieved', canvases }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
@@ -178,6 +189,7 @@ export async function handleCanvas(req: Request): Promise<Response> {
       );
     }
 
+    console.log(`[Canvas] No matching route for ${req.method} ${path}`);
     return new Response(JSON.stringify({ message: 'Not found' }), { status: 404 });
   } catch (error) {
     console.error('Canvas error:', error);

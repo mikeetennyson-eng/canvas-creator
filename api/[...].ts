@@ -4,14 +4,16 @@ export default async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url, `https://${req.headers.get('host') || 'localhost'}`);
   const path = url.pathname;
 
-  console.log(`[${new Date().toISOString()}] ${req.method} ${path}`);
+  console.log(`[Vercel] ${req.method} ${path} - Full URL: ${req.url}`);
 
   try {
     if (path.startsWith('/api/canvas')) {
+      console.log('[Vercel] Routing to handleCanvas');
       return handleCanvas(req);
     }
 
     if (path.startsWith('/api/auth')) {
+      console.log('[Vercel] Routing to handleAuth');
       return handleAuth(req);
     }
 
