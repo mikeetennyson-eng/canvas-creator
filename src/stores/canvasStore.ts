@@ -23,6 +23,7 @@ interface CanvasStore {
   moveLayer: (id: string, direction: 'up' | 'down') => void;
   getCanvasJSON: () => string;
   loadCanvasJSON: (json: string) => void;
+  resetCanvas: () => void;
 }
 
 export const useCanvasStore = create<CanvasStore>((set, get) => ({
@@ -99,5 +100,17 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     } catch {
       console.error('Invalid canvas JSON');
     }
+  },
+
+  resetCanvas: () => {
+    set({
+      elements: [],
+      selectedIds: [],
+      activeTool: 'select',
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+      nextZIndex: 1,
+    });
   },
 }));

@@ -16,16 +16,25 @@ export default function EditorPage() {
   const setLoading = useIconStore((s) => s.setLoading);
   const removeSelected = useCanvasStore((s) => s.removeSelected);
   const selectedIds = useCanvasStore((s) => s.selectedIds);
+  const resetCanvas = useCanvasStore((s) => s.resetCanvas);
   const { isAuthenticated } = useAuth();
   const canvasId = searchParams.get('load');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load canvas if load param provided
+  // Handle canvas loading or creating new
   useEffect(() => {
     if (canvasId && isAuthenticated) {
+      // Load specific canvas from profile
       loadCanvasData(canvasId);
+    } else {
+      // Creating new canvas - clear previous canvas context
+      resetCanvas();
+      localStorage.removeItem('currentCanvasId');
+      localStorage.removeItem('lastLoadedCanvas');
+      // Set default title for new canvas
+      localStorage.setItem('currentCanvasTitle', 'Untitled Diagram');
     }
-  }, [canvasId, isAuthenticated]);
+  }, [canvasId, isAuthenticated, resetCanvas]);
 
   // Load icons
   useEffect(() => {
@@ -93,16 +102,16 @@ export default function EditorPage() {
       const stageEl = document.querySelector('.konvajs-content canvas') as HTMLCanvasElement | null;
       const thumbnail = stageEl ? stageEl.toDataURL('image/png') : undefined;
 
-      await apiClient.saveCanvas({
+      const response = await apiClient.saveCanvas({
         ...(canvasId && { _id: canvasId }),
         title: canvasTitle,
         canvasData: canvasJSON,
         thumbnail,
       });
 
-      // Update canvas ID if new
-      if (!canvasId && canvas && canvas._id) {
-        localStorage.setItem('currentCanvasId', canvas._id);
+      // Save the canvas ID for future auto-saves in this session
+      if (response.canvas && response.canvas._id) {
+        localStorage.setItem('currentCanvasId', response.canvas._id);
       }
 
       console.log('Canvas auto-saved');
