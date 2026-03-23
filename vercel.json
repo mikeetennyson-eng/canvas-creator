@@ -2,6 +2,7 @@
   "buildCommand": "npm run build",
   "framework": "vite",
   "outputDirectory": "dist",
+  "includes": ["backend/**/*"],
   "rewrites": [
     {
       "source": "/api/(.*)",

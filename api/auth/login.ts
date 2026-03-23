@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { login } from '../../../backend/src/controllers/authController.js';
-import '../../../api/_db-init.js';
+import { login } from '../controllers/authController.js';
+import '../_db-init.js';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

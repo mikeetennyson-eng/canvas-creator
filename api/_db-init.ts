@@ -1,4 +1,4 @@
-import { connectDB } from '../../backend/src/config/db.js';
+import { connectDB } from './config/db.js';
 
 // Initialize database connection
 connectDB().then(() => {
