@@ -51,7 +51,6 @@ function IconCard({
     });
     trackUsedIcon(icon);
   };
-  };
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('application/json', JSON.stringify(icon));
