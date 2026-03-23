@@ -3,48 +3,120 @@ import { useSubscription } from '@/context/SubscriptionContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { apiClient } from '@/lib/apiClient';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 export default function PricingPage() {
   const navigate = useNavigate();
-  const { subscription, upgradeSubscription, isLoading } = useSubscription();
+  const { subscription, isLoading } = useSubscription();
   const { toast } = useToast();
   const [processingPayment, setProcessingPayment] = useState(false);
+
+  // Load Razorpay script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
 
   const handleUpgrade = async () => {
     try {
       setProcessingPayment(true);
-      
-      // Simulate Razorpay payment (in production, integrate with Razorpay payment gateway)
-      // For now, we'll use a dummy transaction ID
-      const transactionId = `TXN_${Date.now()}`;
-      
-      // Show processing message
-      toast({
-        title: 'Processing Payment',
-        description: 'Your payment is being processed...',
-      });
 
-      // Call upgrade endpoint
-      await upgradeSubscription('credit_card', transactionId);
+      // Step 1: Create Razorpay order
+      const orderResponse = await apiClient.createRazorpayOrder();
+      const orderId = orderResponse.order.orderId;
 
-      toast({
-        title: 'Success!',
-        description: 'Your subscription has been upgraded to Professional plan.',
-      });
+      // Step 2: Initialize Razorpay checkout
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      if (!razorpayKey) {
+        throw new Error('Razorpay key not configured');
+      }
 
-      // Redirect to profile
-      navigate('/profile');
+      const options = {
+        key: razorpayKey,
+        amount: orderResponse.order.amount,
+        currency: orderResponse.order.currency,
+        name: 'Canvas Creator',
+        description: 'Professional Plan Subscription',
+        order_id: orderId,
+        handler: async (response: any) => {
+          try {
+            // Step 3: Verify payment on backend
+            const verifyResponse = await apiClient.verifyRazorpayPayment(
+              orderId,
+              response.razorpay_payment_id,
+              response.razorpay_signature
+            );
+
+            toast({
+              title: 'Success!',
+              description: 'Your subscription has been upgraded to Professional plan.',
+            });
+
+            // Redirect to profile after a short delay
+            setTimeout(() => {
+              navigate('/profile');
+            }, 1500);
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Payment verification failed';
+            toast({
+              title: 'Error',
+              description: errorMessage,
+              variant: 'destructive',
+            });
+            setProcessingPayment(false);
+          }
+        },
+        prefill: {
+          name: 'User',
+          email: 'user@example.com',
+        },
+        theme: {
+          color: '#2563eb',
+        },
+        modal: {
+          ondismiss: () => {
+            setProcessingPayment(false);
+          },
+        },
+      };
+
+      if (window.Razorpay) {
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+        razorpay.on('payment.failed', (response: any) => {
+          setProcessingPayment(false);
+          toast({
+            title: 'Payment Failed',
+            description: response.error.description || 'Payment was cancelled',
+            variant: 'destructive',
+          });
+        });
+      } else {
+        throw new Error('Razorpay script not loaded');
+      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upgrade subscription';
+      setProcessingPayment(false);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to initiate payment';
       toast({
         title: 'Error',
         description: errorMessage,
         variant: 'destructive',
       });
-    } finally {
-      setProcessingPayment(false);
     }
   };
 
@@ -203,6 +275,12 @@ export default function PricingPage() {
               <h3 className="font-semibold text-gray-900 mb-2">Are there any setup fees?</h3>
               <p className="text-gray-600">
                 No, there are no setup fees or hidden charges. You only pay the monthly subscription cost.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">Is my payment secure?</h3>
+              <p className="text-gray-600">
+                Yes, we use Razorpay for all payments, which is PCI DSS compliant and uses industry-standard encryption to protect your payment information.
               </p>
             </div>
             <div>

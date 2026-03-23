@@ -47,6 +47,17 @@ export interface SubscriptionResponse {
   subscription: SubscriptionInfo;
 }
 
+export interface RazorpayOrder {
+  orderId: string;
+  amount: number;
+  currency: string;
+}
+
+export interface RazorpayOrderResponse {
+  message: string;
+  order: RazorpayOrder;
+}
+
 class ApiClient {
   private baseURL: string;
 
@@ -191,6 +202,25 @@ class ApiClient {
     return this.request<SubscriptionResponse>('/subscription/cancel', {
       method: 'POST',
       body: JSON.stringify({}),
+    });
+  }
+
+  // Razorpay endpoints
+  async createRazorpayOrder(): Promise<RazorpayOrderResponse> {
+    return this.request<RazorpayOrderResponse>('/subscription/create-order', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async verifyRazorpayPayment(
+    orderId: string,
+    paymentId: string,
+    signature: string
+  ): Promise<SubscriptionResponse> {
+    return this.request<SubscriptionResponse>('/subscription/verify-payment', {
+      method: 'POST',
+      body: JSON.stringify({ orderId, paymentId, signature }),
     });
   }
 

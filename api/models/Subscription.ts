@@ -13,6 +13,7 @@ export interface ISubscription extends Document {
   autoRenewal: boolean;
   paymentMethod?: string;
   transactionId?: string;
+  orderId?: string; // Razorpay order ID
   notificationSent?: boolean; // Track if renewal reminder sent
   createdAt: Date;
   updatedAt: Date;
@@ -63,6 +64,10 @@ const subscriptionSchema = new Schema<ISubscription>(
       trim: true,
     },
     transactionId: {
+      type: String,
+      trim: true,
+    },
+    orderId: {
       type: String,
       trim: true,
     },

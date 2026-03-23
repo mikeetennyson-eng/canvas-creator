@@ -1,6 +1,7 @@
 import { verifyToken as verifyJWT } from './config/jwt.js';
 import Subscription from './models/Subscription.js';
 import { connectDB } from './config/db.js';
+import { createRazorpayOrder, verifyPaymentSignature } from './config/razorpay.js';
 
 // Helper to get header from Node.js or Web API request objects
 function getHeader(headers: any, name: string): string | undefined {
@@ -268,6 +269,100 @@ export async function handleSubscription(req: any): Promise<Response> {
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Create Razorpay order
+    if (path.match(/\/subscription\/create-order$/) && req.method === 'POST') {
+      try {
+        const order = await createRazorpayOrder(40000, userId); // 400 INR = 40000 paise
+        
+        return new Response(
+          JSON.stringify({
+            message: 'Order created successfully',
+            order,
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      } catch (error) {
+        console.error('Error creating Razorpay order:', error);
+        return new Response(
+          JSON.stringify({ message: 'Failed to create order' }),
+          { status: 500 }
+        );
+      }
+    }
+
+    // Verify payment and upgrade subscription
+    if (path.match(/\/subscription\/verify-payment$/) && req.method === 'POST') {
+      try {
+        const body = await parseBody(req);
+        const { orderId, paymentId, signature } = body;
+
+        if (!orderId || !paymentId || !signature) {
+          return new Response(
+            JSON.stringify({ message: 'Missing required payment details' }),
+            { status: 400 }
+          );
+        }
+
+        // Verify payment signature
+        const isValidSignature = verifyPaymentSignature(orderId, paymentId, signature);
+        
+        if (!isValidSignature) {
+          return new Response(
+            JSON.stringify({ message: 'Invalid payment signature' }),
+            { status: 400 }
+          );
+        }
+
+        // Get or create subscription
+        let subscription = await Subscription.findOne({ userId });
+        
+        if (!subscription) {
+          return new Response(
+            JSON.stringify({ message: 'Subscription not found' }),
+            { status: 404 }
+          );
+        }
+
+        // Update subscription to professional
+        const now = new Date();
+        const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        subscription.plan = 'professional';
+        subscription.status = 'active';
+        subscription.price = 40000; // 400 Rs in paise
+        subscription.currentPeriodStart = now;
+        subscription.currentPeriodEnd = periodEnd;
+        subscription.autoRenewal = true;
+        subscription.paymentMethod = 'razorpay';
+        subscription.transactionId = paymentId;
+        subscription.orderId = orderId;
+        subscription.notificationSent = false;
+
+        await subscription.save();
+
+        return new Response(
+          JSON.stringify({
+            message: 'Payment verified and subscription upgraded successfully',
+            subscription: {
+              plan: subscription.plan,
+              status: subscription.status,
+              currentPeriodStart: subscription.currentPeriodStart,
+              currentPeriodEnd: subscription.currentPeriodEnd,
+              autoRenewal: subscription.autoRenewal,
+              daysRemaining: Math.ceil((periodEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)),
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      } catch (error) {
+        console.error('Error verifying payment:', error);
+        return new Response(
+          JSON.stringify({ message: 'Failed to verify payment' }),
+          { status: 500 }
+        );
+      }
     }
 
     console.log(`[Subscription] No matching route for ${req.method} ${path}`);
