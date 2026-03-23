@@ -4,11 +4,11 @@
   "outputDirectory": "dist",
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "^/api/(.*)$",
       "dest": "/api/$1"
     },
     {
-      "src": "/(.*)",
+      "src": "^(?!/api/)(?!.*\\..*$).*$",
       "dest": "/index.html"
     }
   ]
