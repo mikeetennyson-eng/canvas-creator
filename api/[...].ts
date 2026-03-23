@@ -1,6 +1,6 @@
 import { handleAuth, handleCanvas } from './handlers.js';
 
-export default async function handler(req: any): Promise<Response> {
+export default async function handler(req: any, res: any): Promise<void> {
   const host = req.headers.get?.('host') || req.headers['host'] || 'localhost';
   const url = new URL(req.url || '/', `https://${host}`);
   const path = url.pathname;
@@ -9,20 +9,18 @@ export default async function handler(req: any): Promise<Response> {
 
   try {
     if (path === '/api/health') {
-      return new Response(
-        JSON.stringify({
-          message: 'Server is running',
-          timestamp: new Date(),
-        }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
+      res.status(200).json({
+        message: 'Server is running',
+        timestamp: new Date(),
+      });
+      return;
     }
 
     // This catch-all shouldn't be hit since auth/ and canvas/ have their own routes
     console.log('[Vercel Main] Unhandled path, returning 404');
-    return new Response(JSON.stringify({ message: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+    res.status(404).json({ message: 'Not found' });
   } catch (error) {
     console.error('[Vercel Main Error]:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
