@@ -21,6 +21,7 @@ export default function EditorPage() {
   const { isAuthenticated } = useAuth();
   const canvasId = searchParams.get('load');
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingCanvas, setIsLoadingCanvas] = useState(false);
 
   // Handle canvas loading or creating new
   useEffect(() => {
@@ -77,20 +78,40 @@ export default function EditorPage() {
 
   const loadCanvasData = async (id: string) => {
     try {
+      setIsLoadingCanvas(true);
+      console.log(`[EditorPage] Starting to load canvas: ${id}`);
+      const startTime = performance.now();
+
+      console.log('[EditorPage] Calling apiClient.getCanvas...');
+      const apiStart = performance.now();
       const response = await apiClient.getCanvas(id);
+      const apiEnd = performance.now();
+      console.log(`[EditorPage] API call took ${apiEnd - apiStart}ms`);
+
       const canvas = response.canvas;
-      const canvasData = JSON.parse(canvas.canvasData);
       
-      // Load canvas data into Zustand store
+      console.log('[EditorPage] Parsing canvas data...');
+      const parseStart = performance.now();
+      const canvasData = JSON.parse(canvas.canvasData);
+      const parseEnd = performance.now();
+      console.log(`[EditorPage] JSON parse took ${parseEnd - parseStart}ms`);
+      
+      console.log('[EditorPage] Loading canvas into store...');
+      const loadStart = performance.now();
       loadCanvasJSON(JSON.stringify(canvasData));
+      const loadEnd = performance.now();
+      console.log(`[EditorPage] Store load took ${loadEnd - loadStart}ms`);
       
       // Save to localStorage for reference
       localStorage.setItem('currentCanvasId', canvas._id);
       localStorage.setItem('currentCanvasTitle', canvas.title);
       
-      console.log('Canvas loaded successfully');
+      const endTime = performance.now();
+      console.log(`[EditorPage] Total canvas load time: ${endTime - startTime}ms`);
+      setIsLoadingCanvas(false);
     } catch (err) {
       console.error('Failed to load canvas:', err);
+      setIsLoadingCanvas(false);
     }
   };
 
@@ -131,10 +152,20 @@ export default function EditorPage() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       <Toolbar onSave={autoSaveCanvas} isSaving={isSaving} />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         <IconLibrary />
         <CanvasEditor />
         <PropertiesPanel />
+        
+        {/* Loading overlay */}
+        {isLoadingCanvas && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+            <div className="flex flex-col items-center gap-4">
+              <div className="h-12 w-12 rounded-full border-4 border-muted-foreground border-t-primary animate-spin" />
+              <p className="text-sm font-medium text-muted-foreground">Loading canvas...</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
