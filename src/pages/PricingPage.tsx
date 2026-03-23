@@ -15,7 +15,7 @@ declare global {
 
 export default function PricingPage() {
   const navigate = useNavigate();
-  const { subscription, isLoading } = useSubscription();
+  const { subscription, isLoading, refreshSubscription } = useSubscription();
   const { toast } = useToast();
   const [processingPayment, setProcessingPayment] = useState(false);
 
@@ -67,6 +67,10 @@ export default function PricingPage() {
               response.razorpay_signature
             );
             console.log('[Upgrade] Payment verified:', verifyResponse);
+
+            // Refresh subscription context immediately
+            await refreshSubscription();
+            console.log('[Upgrade] Subscription refreshed');
 
             toast({
               title: 'Success!',
