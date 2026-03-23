@@ -1,11 +1,12 @@
 import {
   MousePointer2, Square, Circle, Type, ArrowUpRight,
   Download, FileJson, ScrollText, ZoomIn, ZoomOut,
-  Undo2, Redo2, Sun, Moon,
+  Undo2, Redo2, Sun, Moon, Home,
 } from 'lucide-react';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { useIconStore } from '@/stores/iconStore';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AttributionModal from '@/components/AttributionModal/AttributionModal';
 import type { ToolType } from '@/types/editor';
 
@@ -18,6 +19,7 @@ const tools: { id: ToolType; icon: typeof MousePointer2; label: string }[] = [
 ];
 
 export default function Toolbar() {
+  const navigate = useNavigate();
   const { activeTool, setActiveTool, zoom, setZoom, getCanvasJSON, elements } = useCanvasStore();
   const usedIcons = useIconStore((s) => s.usedIcons);
   const [showAttrModal, setShowAttrModal] = useState(false);
@@ -111,6 +113,16 @@ export default function Toolbar() {
           <button onClick={handleExportJSON} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95">
             <FileJson className="h-3.5 w-3.5" />
             JSON
+          </button>
+
+          <div className="mx-1.5 h-5 w-px bg-border" />
+
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
+          >
+            <Home className="h-3.5 w-3.5" />
+            Home
           </button>
 
           <div className="mx-1.5 h-5 w-px bg-border" />
