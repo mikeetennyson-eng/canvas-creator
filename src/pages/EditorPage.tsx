@@ -1,28 +1,35 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Toolbar from '@/components/Toolbar/Toolbar';
 import IconLibrary from '@/components/Sidebar/IconLibrary';
 import IconCounter from '@/components/Icons/IconCounter';
 import CanvasEditor from '@/components/Canvas/CanvasEditor';
 import PropertiesPanel from '@/components/PropertiesPanel/PropertiesPanel';
+import { UpgradeConfirmDialog } from '@/components/UpgradeConfirmDialog';
 import { useIconStore } from '@/stores/iconStore';
 import { fetchIcons } from '@/data/mockIcons';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { apiClient } from '@/lib/apiClient';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export default function EditorPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const setIcons = useIconStore((s) => s.setIcons);
   const setLoading = useIconStore((s) => s.setLoading);
   const removeSelected = useCanvasStore((s) => s.removeSelected);
   const selectedIds = useCanvasStore((s) => s.selectedIds);
   const resetCanvas = useCanvasStore((s) => s.resetCanvas);
   const loadCanvasJSON = useCanvasStore((s) => s.loadCanvasJSON);
+  const getCanvasJSON = useCanvasStore((s) => s.getCanvasJSON);
   const { isAuthenticated } = useAuth();
   const canvasId = searchParams.get('load');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingCanvas, setIsLoadingCanvas] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Handle canvas loading or creating new
   useEffect(() => {
@@ -150,14 +157,71 @@ export default function EditorPage() {
     }
   };
 
+  const handleUpgradeClick = async () => {
+    try {
+      setIsRedirecting(true);
+      
+      // Auto-save canvas before redirecting
+      const canvasState = useCanvasStore.getState();
+      const canvasJSON = canvasState.getCanvasJSON();
+      const canvasTitle = localStorage.getItem('currentCanvasTitle') || 'Untitled Diagram';
+      const canvasId = localStorage.getItem('currentCanvasId');
+
+      // Get thumbnail
+      const stageEl = document.querySelector('.konvajs-content canvas') as HTMLCanvasElement | null;
+      const thumbnail = stageEl ? stageEl.toDataURL('image/png') : undefined;
+
+      try {
+        const response = await apiClient.saveCanvas({
+          ...(canvasId && { _id: canvasId }),
+          title: canvasTitle,
+          canvasData: canvasJSON,
+          thumbnail,
+        });
+
+        if (response.canvas && response.canvas._id) {
+          localStorage.setItem('currentCanvasId', response.canvas._id);
+        }
+
+        toast({
+          title: 'Progress Saved',
+          description: 'Your diagram has been saved.',
+        });
+      } catch (saveErr) {
+        console.error('Failed to save before upgrade:', saveErr);
+        toast({
+          title: 'Warning',
+          description: 'Could not save diagram, but redirecting to upgrade anyway.',
+          variant: 'destructive',
+        });
+      }
+
+      // Redirect to pricing
+      setTimeout(() => {
+        navigate('/pricing');
+      }, 1000);
+    } finally {
+      setIsRedirecting(false);
+      setShowUpgradeDialog(false);
+    }
+  };
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       <Toolbar onSave={autoSaveCanvas} isSaving={isSaving} />
       <div className="flex flex-1 overflow-hidden relative">
-        <IconLibrary />
+        <IconLibrary onUpgradeRequest={() => setShowUpgradeDialog(true)} />
         <CanvasEditor />
         <PropertiesPanel />
         <IconCounter />
+
+        {/* Upgrade confirmation dialog */}
+        <UpgradeConfirmDialog
+          open={showUpgradeDialog}
+          onOpenChange={setShowUpgradeDialog}
+          onConfirm={handleUpgradeClick}
+          isLoading={isRedirecting}
+        />
         
         {/* Loading overlay */}
         {isLoadingCanvas && (

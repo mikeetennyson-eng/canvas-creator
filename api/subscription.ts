@@ -200,10 +200,25 @@ export async function handleSubscription(req: any): Promise<Response> {
       subscription.autoRenewal = autoRenewal;
       await subscription.save();
 
+      // Check if subscription is expired (shouldn't be, but just in case)
+      if (subscription.plan === 'professional' && new Date() > subscription.currentPeriodEnd!) {
+        subscription.status = 'expired';
+        await subscription.save();
+      }
+
       return new Response(
         JSON.stringify({
           message: `Auto-renewal ${autoRenewal ? 'enabled' : 'disabled'}`,
-          subscription: { autoRenewal: subscription.autoRenewal },
+          subscription: {
+            plan: subscription.plan,
+            status: subscription.status,
+            currentPeriodStart: subscription.currentPeriodStart,
+            currentPeriodEnd: subscription.currentPeriodEnd,
+            autoRenewal: subscription.autoRenewal,
+            daysRemaining: subscription.plan === 'professional' 
+              ? Math.ceil((subscription.currentPeriodEnd!.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+              : null,
+          },
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );

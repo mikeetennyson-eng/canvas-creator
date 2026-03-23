@@ -4,31 +4,33 @@ import { useIconStore } from '@/stores/iconStore';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { useIconRenderer, generateIconDataUrl } from '@/hooks/useIconRenderer';
-import { useToast } from '@/hooks/use-toast';
 import type { IconData } from '@/types/editor';
-import { useNavigate } from 'react-router-dom';
+import { UpgradeConfirmDialog } from '@/components/UpgradeConfirmDialog';
 
-function IconCard({ icon }: { icon: IconData }) {
+interface IconLibraryProps {
+  onUpgradeRequest?: () => void;
+}
+
+function IconCard({ 
+  icon, 
+  onUpgradeRequest 
+}: { 
+  icon: IconData;
+  onUpgradeRequest?: () => void;
+}) {
   const dataUrl = icon.svg_url;
   const addElement = useCanvasStore((s) => s.addElement);
   const elements = useCanvasStore((s) => s.elements);
   const trackUsedIcon = useIconStore((s) => s.trackUsedIcon);
   const { isFreeUser } = useSubscription();
-  const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleAdd = () => {
     // Check icon limit for free users
     if (isFreeUser()) {
       const iconCount = elements.filter((el) => el.type === 'icon').length;
       if (iconCount >= 20) {
-        toast({
-          title: 'Icon Limit Reached',
-          description: 'Free plan allows maximum 20 icons per project. Upgrade to add more.',
-          variant: 'destructive',
-        });
-        // Navigate to pricing page after a short delay
-        setTimeout(() => navigate('/pricing'), 1500);
+        // Show upgrade dialog instead of auto-redirecting
+        onUpgradeRequest?.();
         return;
       }
     }
@@ -48,6 +50,7 @@ function IconCard({ icon }: { icon: IconData }) {
       svg_url: dataUrl,
     });
     trackUsedIcon(icon);
+  };
   };
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -79,7 +82,7 @@ function IconCard({ icon }: { icon: IconData }) {
   );
 }
 
-export default function IconLibrary() {
+export default function IconLibrary({ onUpgradeRequest }: IconLibraryProps) {
   const {
     searchQuery, setSearchQuery,
     selectedCategory, setSelectedCategory,
@@ -170,7 +173,7 @@ export default function IconLibrary() {
         ) : (
           <div className="grid grid-cols-3 gap-1">
             {filteredIcons.map((icon) => (
-              <IconCard key={icon.id} icon={icon} />
+              <IconCard key={icon.id} icon={icon} onUpgradeRequest={onUpgradeRequest} />
             ))}
           </div>
         )}

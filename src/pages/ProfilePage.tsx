@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/apiClient';
+import { useToast } from '@/hooks/use-toast';
 import { Sparkles, ArrowRight, Calendar, Trash2, Edit2, ExternalLink, Crown, AlertCircle, RefreshCw } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
@@ -19,7 +20,8 @@ interface Canvas {
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { subscription, toggleAutoRenewal, isLoading: subscriptionLoading } = useSubscription();
+  const { subscription, toggleAutoRenewal, isLoading: subscriptionLoading, refreshSubscription } = useSubscription();
+  const { toast } = useToast();
   const [canvases, setCanvases] = useState<Canvas[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,9 +57,41 @@ export default function ProfilePage() {
   const handleToggleAutoRenewal = async () => {
     try {
       setAutoRenewalLoading(true);
-      await toggleAutoRenewal(!subscription?.autoRenewal);
+      
+      if (!subscription) {
+        throw new Error('Subscription not found');
+      }
+
+      // Toggle the auto-renewal setting
+      const newAutoRenewalState = !subscription.autoRenewal;
+      await toggleAutoRenewal(newAutoRenewalState);
+
+      // Refresh subscription info from server to ensure state is correct
+      setTimeout(async () => {
+        try {
+          await refreshSubscription();
+          
+          // Show success message
+          toast({
+            title: 'Success',
+            description: `Auto-renewal has been ${newAutoRenewalState ? 'enabled' : 'disabled'}.`,
+          });
+        } catch {
+          // If refresh fails, still show success since the toggle API succeeded
+          toast({
+            title: 'Success',
+            description: `Auto-renewal has been ${newAutoRenewalState ? 'enabled' : 'disabled'}.`,
+          });
+        }
+      }, 500);
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to toggle auto-renewal';
       console.error('Failed to toggle auto-renewal:', err);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setAutoRenewalLoading(false);
     }
@@ -169,14 +203,16 @@ export default function ProfilePage() {
                       {subscription.plan === 'professional' ? 'Unlimited' : '20'}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Period End</p>
-                    <p className="text-lg font-semibold">
-                      {subscription.currentPeriodEnd
-                        ? formatDate(subscription.currentPeriodEnd)
-                        : 'N/A'}
-                    </p>
-                  </div>
+                  {subscription.plan === 'professional' && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Renewal Date</p>
+                      <p className="text-lg font-semibold">
+                        {subscription.currentPeriodEnd
+                          ? formatDate(subscription.currentPeriodEnd)
+                          : 'N/A'}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {subscription.plan === 'professional' && (
