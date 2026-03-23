@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, isLoading, error: authError } = useAuth();
+  const { login, isLoading, error: authError, isAuthenticated } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -58,9 +59,20 @@ export default function LoginPage() {
             </div>
             <span className="font-bold text-lg">Canvas Creator</span>
           </Link>
-          <Link to="/">
-            <Button variant="ghost">Back Home</Button>
-          </Link>
+          {isAuthenticated ? (
+            <Button
+              onClick={() => navigate('/editor')}
+              variant="default"
+              size="sm"
+              className="gap-2"
+            >
+              Create <ArrowRight className="w-4 h-4" />
+            </Button>
+          ) : (
+            <Link to="/">
+              <Button variant="ghost">Back Home</Button>
+            </Link>
+          )}
         </div>
       </nav>
 
