@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useSubscription } from '@/context/SubscriptionContext';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/apiClient';
-import { Sparkles, ArrowRight, Calendar, Trash2, Edit2, ExternalLink } from 'lucide-react';
+import { Sparkles, ArrowRight, Calendar, Trash2, Edit2, ExternalLink, Crown, AlertCircle, RefreshCw } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 interface Canvas {
   _id: string;
@@ -17,9 +19,11 @@ interface Canvas {
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { subscription, toggleAutoRenewal, isLoading: subscriptionLoading } = useSubscription();
   const [canvases, setCanvases] = useState<Canvas[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [autoRenewalLoading, setAutoRenewalLoading] = useState(false);
 
   useEffect(() => {
     fetchUserCanvases();
@@ -45,6 +49,17 @@ export default function ProfilePage() {
       setCanvases(canvases.filter((c) => c._id !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete canvas');
+    }
+  };
+
+  const handleToggleAutoRenewal = async () => {
+    try {
+      setAutoRenewalLoading(true);
+      await toggleAutoRenewal(!subscription?.autoRenewal);
+    } catch (err) {
+      console.error('Failed to toggle auto-renewal:', err);
+    } finally {
+      setAutoRenewalLoading(false);
     }
   };
 
@@ -105,6 +120,115 @@ export default function ProfilePage() {
               <p className="text-sm text-muted-foreground">Member since {user && formatDate(new Date().toISOString())}</p>
             </div>
           </div>
+
+          {/* Subscription Section */}
+          {subscription && (
+            <div className="mb-16">
+              <div className={`rounded-2xl border p-8 shadow-lg ${
+                subscription.plan === 'professional'
+                  ? 'bg-gradient-to-br from-primary/5 to-accent/5 border-primary/30'
+                  : 'bg-card border-border'
+              }`}>
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-3 rounded-lg ${
+                      subscription.plan === 'professional'
+                        ? 'bg-primary/20'
+                        : 'bg-secondary'
+                    }`}>
+                      <Crown className={`w-6 h-6 ${
+                        subscription.plan === 'professional'
+                          ? 'text-primary'
+                          : 'text-muted-foreground'
+                      }`} />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold capitalize">{subscription.plan} Plan</h2>
+                      <p className="text-sm text-muted-foreground capitalize">Status: {subscription.status}</p>
+                    </div>
+                  </div>
+                  {subscription.daysRemaining !== null && subscription.daysRemaining < 7 && (
+                    <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
+                      <AlertCircle className="w-4 h-4" />
+                      Expires in {subscription.daysRemaining} days
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Price</p>
+                    <p className="text-2xl font-bold">
+                      {subscription.plan === 'professional' ? '₹400' : '₹0'}
+                      <span className="text-base font-normal text-muted-foreground"> {subscription.plan === 'professional' ? '/month' : ''}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Icons per Project</p>
+                    <p className="text-2xl font-bold">
+                      {subscription.plan === 'professional' ? 'Unlimited' : '20'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Period End</p>
+                    <p className="text-lg font-semibold">
+                      {subscription.currentPeriodEnd
+                        ? formatDate(subscription.currentPeriodEnd)
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                {subscription.plan === 'professional' && (
+                  <div className="flex items-center justify-between bg-background/50 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-semibold">Auto-renewal</p>
+                        <p className="text-sm text-muted-foreground">
+                          {subscription.autoRenewal 
+                            ? 'Enabled - Your plan will renew automatically'
+                            : 'Disabled - You will need to renew manually'}
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={subscription.autoRenewal}
+                      onCheckedChange={handleToggleAutoRenewal}
+                      disabled={autoRenewalLoading}
+                    />
+                  </div>
+                )}
+
+                <div className="flex gap-3 mt-6">
+                  {subscription.plan === 'free' && (
+                    <Button
+                      onClick={() => navigate('/pricing')}
+                      className="flex-1 gap-2"
+                    >
+                      <Crown className="w-4 h-4" />
+                      Upgrade to Professional
+                    </Button>
+                  )}
+                  {subscription.plan === 'professional' && (
+                    <Button
+                      onClick={() => navigate('/pricing')}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Manage Subscription
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                  >
+                    Need Help?
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Recent Canvases Section */}
           <div>

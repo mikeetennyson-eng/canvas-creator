@@ -2,15 +2,37 @@ import { useState } from 'react';
 import { Search, Filter } from 'lucide-react';
 import { useIconStore } from '@/stores/iconStore';
 import { useCanvasStore } from '@/stores/canvasStore';
+import { useSubscription } from '@/context/SubscriptionContext';
 import { useIconRenderer, generateIconDataUrl } from '@/hooks/useIconRenderer';
+import { useToast } from '@/hooks/use-toast';
 import type { IconData } from '@/types/editor';
+import { useNavigate } from 'react-router-dom';
 
 function IconCard({ icon }: { icon: IconData }) {
   const dataUrl = icon.svg_url;
   const addElement = useCanvasStore((s) => s.addElement);
+  const elements = useCanvasStore((s) => s.elements);
   const trackUsedIcon = useIconStore((s) => s.trackUsedIcon);
+  const { isFreeUser } = useSubscription();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleAdd = () => {
+    // Check icon limit for free users
+    if (isFreeUser()) {
+      const iconCount = elements.filter((el) => el.type === 'icon').length;
+      if (iconCount >= 20) {
+        toast({
+          title: 'Icon Limit Reached',
+          description: 'Free plan allows maximum 20 icons per project. Upgrade to add more.',
+          variant: 'destructive',
+        });
+        // Navigate to pricing page after a short delay
+        setTimeout(() => navigate('/pricing'), 1500);
+        return;
+      }
+    }
+
     const id = `icon-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     addElement({
       id,

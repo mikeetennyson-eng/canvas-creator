@@ -1,6 +1,7 @@
 import { verifyToken as verifyJWT } from './config/jwt.js';
 import Canvas from './models/Canvas.js';
 import User from './models/User.js';
+import Subscription from './models/Subscription.js';
 import { connectDB } from './config/db.js';
 
 // Helper to get header from Node.js or Web API request objects
@@ -72,6 +73,20 @@ export async function handleAuth(req: any): Promise<Response> {
       }
 
       const user = await User.create({ name, email: email.toLowerCase(), password });
+      
+      // Create free subscription for new user
+      const now = new Date();
+      const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+      await Subscription.create({
+        userId: (user as any)._id,
+        plan: 'free',
+        status: 'active',
+        price: 0,
+        currentPeriodStart: now,
+        currentPeriodEnd: periodEnd,
+        autoRenewal: false,
+      });
+      
       const { generateToken } = await import('./config/jwt.js');
       const token = generateToken({ id: (user as any)._id.toString(), email: user.email });
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Toolbar from '@/components/Toolbar/Toolbar';
 import IconLibrary from '@/components/Sidebar/IconLibrary';
+import IconCounter from '@/components/Icons/IconCounter';
 import CanvasEditor from '@/components/Canvas/CanvasEditor';
 import PropertiesPanel from '@/components/PropertiesPanel/PropertiesPanel';
 import { useIconStore } from '@/stores/iconStore';
@@ -156,6 +157,7 @@ export default function EditorPage() {
         <IconLibrary />
         <CanvasEditor />
         <PropertiesPanel />
+        <IconCounter />
         
         {/* Loading overlay */}
         {isLoadingCanvas && (

@@ -33,6 +33,20 @@ export interface VerifyTokenResponse {
   };
 }
 
+export interface SubscriptionInfo {
+  plan: 'free' | 'professional';
+  status: 'active' | 'inactive' | 'cancelled' | 'expired';
+  currentPeriodStart: string;
+  currentPeriodEnd?: string;
+  autoRenewal: boolean;
+  daysRemaining: number | null;
+}
+
+export interface SubscriptionResponse {
+  message: string;
+  subscription: SubscriptionInfo;
+}
+
 class ApiClient {
   private baseURL: string;
 
@@ -142,6 +156,34 @@ class ApiClient {
   async deleteCanvas(id: string): Promise<any> {
     return this.request(`/canvas/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  // Subscription endpoints
+  async getSubscriptionInfo(): Promise<SubscriptionResponse> {
+    return this.request<SubscriptionResponse>('/subscription/info', {
+      method: 'GET',
+    });
+  }
+
+  async upgradeSubscription(paymentMethod: string, transactionId: string): Promise<SubscriptionResponse> {
+    return this.request<SubscriptionResponse>('/subscription/upgrade', {
+      method: 'POST',
+      body: JSON.stringify({ paymentMethod, transactionId }),
+    });
+  }
+
+  async downgradeSubscription(): Promise<SubscriptionResponse> {
+    return this.request<SubscriptionResponse>('/subscription/downgrade', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async toggleAutoRenewal(autoRenewal: boolean): Promise<SubscriptionResponse> {
+    return this.request<SubscriptionResponse>('/subscription/toggle-renewal', {
+      method: 'POST',
+      body: JSON.stringify({ autoRenewal }),
     });
   }
 
