@@ -16,7 +16,60 @@ export function getRazorpayInstance() {
   });
 }
 
-// Create Razorpay Order
+// Create Razorpay Plan for recurring subscriptions
+export async function createRazorpayPlan(
+  planName: string,
+  amount: number,
+  interval: number = 12,
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly' = 'monthly'
+) {
+  const razorpay = getRazorpayInstance();
+
+  try {
+    const plan = await (razorpay.plans as any).create({
+      period: period,
+      interval: interval,
+      description: planName,
+      notes: {
+        planName: planName,
+      },
+    });
+
+    return plan;
+  } catch (error) {
+    console.error('Error creating Razorpay plan:', error);
+    throw error;
+  }
+}
+
+// Create Razorpay Subscription
+export async function createRazorpaySubscription(
+  customerId: string,
+  planId: string,
+  quantity: number = 1,
+  totalCount: number = 0 // 0 = infinite
+) {
+  const razorpay = getRazorpayInstance();
+
+  try {
+    const subscription = await razorpay.subscriptions.create({
+      plan_id: planId,
+      customer_notify: 1, // Send notification to customer
+      quantity: quantity,
+      total_count: totalCount, // 0 = infinite
+      notes: {
+        customerId: customerId,
+      },
+    });
+
+    return subscription;
+  } catch (error) {
+    console.error('Error creating Razorpay subscription:', error);
+    throw error;
+  }
+}
+
+// Create Razorpay Order (for one-time payment)
 export async function createRazorpayOrder(amount: number, userId: string) {
   const razorpay = getRazorpayInstance();
 
@@ -66,6 +119,24 @@ export function verifyPaymentSignature(
   return expectedSignature === signature;
 }
 
+// Verify webhook signature
+export function verifyWebhookSignature(
+  body: string,
+  signature: string
+): boolean {
+  const secret = process.env.RAZORPAY_KEY_SECRET;
+  if (!secret) {
+    throw new Error('RAZORPAY_KEY_SECRET not configured');
+  }
+
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(body)
+    .digest('hex');
+
+  return expectedSignature === signature;
+}
+
 // Fetch payment details from Razorpay
 export async function getPaymentDetails(paymentId: string) {
   const razorpay = getRazorpayInstance();
@@ -75,6 +146,39 @@ export async function getPaymentDetails(paymentId: string) {
     return payment;
   } catch (error) {
     console.error('Error fetching payment details:', error);
+    throw error;
+  }
+}
+
+// Fetch subscription details
+export async function getSubscriptionDetails(subscriptionId: string) {
+  const razorpay = getRazorpayInstance();
+
+  try {
+    const subscription = await razorpay.subscriptions.fetch(subscriptionId);
+    return subscription;
+  } catch (error) {
+    console.error('Error fetching subscription details:', error);
+    throw error;
+  }
+}
+
+// Cancel subscription
+export async function cancelRazorpaySubscription(
+  subscriptionId: string,
+  cancelAtEnd: boolean = false
+) {
+  const razorpay = getRazorpayInstance();
+
+  try {
+    const result = await razorpay.subscriptions.cancel(
+      subscriptionId,
+      cancelAtEnd // Razorpay expects boolean directly, not an object
+    );
+
+    return result;
+  } catch (error) {
+    console.error('Error cancelling subscription:', error);
     throw error;
   }
 }

@@ -2,6 +2,7 @@ import { verifyToken as verifyJWT } from './config/jwt.js';
 import Subscription from './models/Subscription.js';
 import { connectDB } from './config/db.js';
 import { createRazorpayOrder, verifyPaymentSignature } from './config/razorpay.js';
+import { handleRazorpayWebhook } from './webhooks/razorpay.js';
 
 // Helper to get header from Node.js or Web API request objects
 function getHeader(headers: any, name: string): string | undefined {
@@ -360,6 +361,33 @@ export async function handleSubscription(req: any): Promise<Response> {
         console.error('Error verifying payment:', error);
         return new Response(
           JSON.stringify({ message: 'Failed to verify payment' }),
+          { status: 500 }
+        );
+      }
+    }
+
+    // Webhook endpoint (no auth needed)
+    if (path.match(/\/subscription\/webhook$/) && req.method === 'POST') {
+      try {
+        const signature = getHeader(req.headers, 'x-razorpay-signature');
+        if (!signature) {
+          return new Response(
+            JSON.stringify({ message: 'Missing signature' }),
+            { status: 401 }
+          );
+        }
+
+        const body = await parseBody(req);
+        const result = await handleRazorpayWebhook(body, signature);
+
+        return new Response(
+          JSON.stringify(result),
+          { status: result.success ? 200 : 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      } catch (error) {
+        console.error('Error handling webhook:', error);
+        return new Response(
+          JSON.stringify({ message: 'Webhook processing failed' }),
           { status: 500 }
         );
       }

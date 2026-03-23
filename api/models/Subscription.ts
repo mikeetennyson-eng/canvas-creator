@@ -13,8 +13,13 @@ export interface ISubscription extends Document {
   autoRenewal: boolean;
   paymentMethod?: string;
   transactionId?: string;
-  orderId?: string; // Razorpay order ID
+  orderId?: string; // Razorpay order ID (for one-time payments)
+  subscriptionId?: string; // Razorpay subscription ID (for recurring)
+  planId?: string; // Razorpay plan ID
+  nextRenewalDate?: Date; // Next auto-renewal date
   notificationSent?: boolean; // Track if renewal reminder sent
+  failedPaymentAttempts?: number; // Track failed renewal attempts
+  lastPaymentError?: string; // Store last payment error
   createdAt: Date;
   updatedAt: Date;
 }
@@ -71,9 +76,30 @@ const subscriptionSchema = new Schema<ISubscription>(
       type: String,
       trim: true,
     },
+    subscriptionId: {
+      type: String,
+      trim: true,
+      unique: true,
+      sparse: true, // Allow multiple null values
+    },
+    planId: {
+      type: String,
+      trim: true,
+    },
+    nextRenewalDate: {
+      type: Date,
+    },
     notificationSent: {
       type: Boolean,
       default: false,
+    },
+    failedPaymentAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lastPaymentError: {
+      type: String,
+      trim: true,
     },
   },
   { timestamps: true }
