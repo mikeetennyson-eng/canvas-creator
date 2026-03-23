@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import User from '../models/User';
-import { generateToken } from '../config/jwt';
+import User from '../models/User.js';
+import { generateToken } from '../config/jwt.js';
 // @ts-ignore
 import validator from 'validator';
 
