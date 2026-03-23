@@ -23,39 +23,45 @@ app.use(
 
 let dbConnected = false;
 
-// Load backend routes dynamically on first request
-let authRoutesLoaded = false;
-let loadAuthRoutesError: Error | null = null;
+// Load backend routes dynamically - this runs once at startup
+let authRoutesLoadPromise: Promise<void> | null = null;
 
 const loadAuthRoutes = async () => {
-  if (authRoutesLoaded) return;
+  if (authRoutesLoadPromise) return authRoutesLoadPromise;
   
-  try {
-    console.log('Loading backend authentication routes...');
-    const { connectDB } = await import('../backend/src/config/db.js');
-    const authRoutesModule = await import('../backend/src/routes/auth.js');
-    const authRoutes = authRoutesModule.default;
-    
-    // Connect to database
+  authRoutesLoadPromise = (async () => {
     try {
-      await connectDB();
-      dbConnected = true;
-      console.log('✅ Database connected');
-    } catch (dbError) {
-      console.error('❌ Database connection error:', dbError);
-      dbConnected = false;
+      console.log('Loading backend authentication routes...');
+      const { connectDB } = await import('../backend/src/config/db.js');
+      const authRoutesModule = await import('../backend/src/routes/auth.js');
+      const authRoutes = authRoutesModule.default;
+      
+      // Connect to database
+      try {
+        await connectDB();
+        dbConnected = true;
+        console.log('✅ Database connected');
+      } catch (dbError) {
+        console.error('❌ Database connection error:', dbError);
+        dbConnected = false;
+      }
+      
+      // Mount auth routes
+      app.use('/api/auth', authRoutes);
+      console.log('✅ Auth routes loaded');
+    } catch (error) {
+      console.error('❌ Failed to load auth routes:', error);
+      throw error;
     }
-    
-    // Mount auth routes
-    app.use('/api/auth', authRoutes);
-    authRoutesLoaded = true;
-    console.log('✅ Auth routes loaded');
-  } catch (error) {
-    console.error('❌ Failed to load auth routes:', error);
-    loadAuthRoutesError = error instanceof Error ? error : new Error(String(error));
-    authRoutesLoaded = false;
-  }
+  })();
+  
+  return authRoutesLoadPromise;
 };
+
+// Load routes immediately at startup
+loadAuthRoutes().catch(err => {
+  console.error('Critical: Failed to load auth routes at startup:', err);
+});
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
@@ -64,21 +70,12 @@ app.get('/api/health', (req: Request, res: Response) => {
     message: 'Server is running', 
     timestamp: new Date(),
     dbConnected,
-    authRoutesLoaded,
     env: {
       mongodb_connected: !!process.env.MONGODB_URI,
       jwt_secret_exists: !!process.env.JWT_SECRET,
       client_url: process.env.CLIENT_URL
     }
   });
-});
-
-// Middleware to load auth routes before first request
-app.use(async (req: Request, res: Response, next: NextFunction) => {
-  if (!authRoutesLoaded && !loadAuthRoutesError) {
-    await loadAuthRoutes();
-  }
-  next();
 });
 
 // 404 handler
