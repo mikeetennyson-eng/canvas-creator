@@ -35,13 +35,17 @@ export default function PricingPage() {
   const handleUpgrade = async () => {
     try {
       setProcessingPayment(true);
+      console.log('[Upgrade] Starting upgrade flow...');
 
       // Step 1: Create Razorpay order
+      console.log('[Upgrade] Creating Razorpay order...');
       const orderResponse = await apiClient.createRazorpayOrder();
       const orderId = orderResponse.order.orderId;
+      console.log('[Upgrade] Order created:', orderId);
 
       // Step 2: Initialize Razorpay checkout
       const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      console.log('[Upgrade] Razorpay Key loaded:', !!razorpayKey);
       if (!razorpayKey) {
         throw new Error('Razorpay key not configured');
       }
@@ -54,6 +58,7 @@ export default function PricingPage() {
         description: 'Professional Plan Subscription',
         order_id: orderId,
         handler: async (response: any) => {
+          console.log('[Upgrade] Payment successful, verifying...', response);
           try {
             // Step 3: Verify payment on backend
             const verifyResponse = await apiClient.verifyRazorpayPayment(
@@ -61,6 +66,7 @@ export default function PricingPage() {
               response.razorpay_payment_id,
               response.razorpay_signature
             );
+            console.log('[Upgrade] Payment verified:', verifyResponse);
 
             toast({
               title: 'Success!',
@@ -72,6 +78,7 @@ export default function PricingPage() {
               navigate('/profile');
             }, 1500);
           } catch (error) {
+            console.error('[Upgrade] Verification error:', error);
             const errorMessage = error instanceof Error ? error.message : 'Payment verification failed';
             toast({
               title: 'Error',
@@ -90,15 +97,19 @@ export default function PricingPage() {
         },
         modal: {
           ondismiss: () => {
+            console.log('[Upgrade] Payment modal dismissed');
             setProcessingPayment(false);
           },
         },
       };
 
       if (window.Razorpay) {
+        console.log('[Upgrade] Opening Razorpay modal...');
         const razorpay = new window.Razorpay(options);
         razorpay.open();
+        console.log('[Upgrade] Razorpay modal opened');
         razorpay.on('payment.failed', (response: any) => {
+          console.error('[Upgrade] Payment failed:', response);
           setProcessingPayment(false);
           toast({
             title: 'Payment Failed',
@@ -110,6 +121,7 @@ export default function PricingPage() {
         throw new Error('Razorpay script not loaded');
       }
     } catch (error) {
+      console.error('[Upgrade] Outer catch error:', error);
       setProcessingPayment(false);
       const errorMessage = error instanceof Error ? error.message : 'Failed to initiate payment';
       toast({
