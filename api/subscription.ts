@@ -3,6 +3,7 @@ import Subscription from './models/Subscription.js';
 import { connectDB } from './config/db.js';
 import { createRazorpayOrder, verifyPaymentSignature } from './config/razorpay.js';
 import { handleRazorpayWebhook } from './webhooks/razorpay.js';
+import { checkExpiringSubscriptions } from './services/autoRenewal.js';
 
 // Helper to get header from Node.js or Web API request objects
 function getHeader(headers: any, name: string): string | undefined {
@@ -361,6 +362,45 @@ export async function handleSubscription(req: any): Promise<Response> {
         console.error('Error verifying payment:', error);
         return new Response(
           JSON.stringify({ message: 'Failed to verify payment' }),
+          { status: 500 }
+        );
+      }
+    }
+
+    // Auto-renewal check endpoint (protected by secret key)
+    if (path.match(/\/subscription\/check-expiry$/) && req.method === 'POST') {
+      try {
+        const authHeader = getHeader(req.headers, 'authorization');
+        const token = authHeader?.split(' ')[1];
+        const secret = process.env.CRON_SECRET || 'default_secret';
+
+        // Verify with either JWT token or cron secret
+        if (token) {
+          try {
+            verifyJWT(token);
+          } catch {
+            return new Response(
+              JSON.stringify({ message: 'Invalid token' }),
+              { status: 401 }
+            );
+          }
+        } else if (process.env.CRON_SECRET && token !== secret) {
+          return new Response(
+            JSON.stringify({ message: 'Unauthorized' }),
+            { status: 401 }
+          );
+        }
+
+        const result = await checkExpiringSubscriptions();
+
+        return new Response(
+          JSON.stringify(result),
+          { status: result.success ? 200 : 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      } catch (error) {
+        console.error('Error checking expiring subscriptions:', error);
+        return new Response(
+          JSON.stringify({ message: 'Check failed' }),
           { status: 500 }
         );
       }
