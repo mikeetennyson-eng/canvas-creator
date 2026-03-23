@@ -97,6 +97,33 @@ export default function ProfilePage() {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    if (!confirm('Are you sure you want to cancel your subscription? This will downgrade you to the free plan with a 20-icon limit.')) {
+      return;
+    }
+
+    try {
+      setAutoRenewalLoading(true);
+      await apiClient.cancelSubscription();
+      await refreshSubscription();
+      
+      toast({
+        title: 'Success',
+        description: 'Your subscription has been cancelled. You are now on the free plan.',
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to cancel subscription';
+      console.error('Failed to cancel subscription:', err);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setAutoRenewalLoading(false);
+    }
+  };
+
   const handleLoadCanvas = (id: string) => {
     navigate(`/editor?load=${id}`);
   };
@@ -247,13 +274,23 @@ export default function ProfilePage() {
                     </Button>
                   )}
                   {subscription.plan === 'professional' && (
-                    <Button
-                      onClick={() => navigate('/pricing')}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Manage Subscription
-                    </Button>
+                    <>
+                      <Button
+                        onClick={() => navigate('/pricing')}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Manage Subscription
+                      </Button>
+                      <Button
+                        onClick={handleCancelSubscription}
+                        variant="destructive"
+                        size="sm"
+                        disabled={autoRenewalLoading}
+                      >
+                        Cancel Subscription
+                      </Button>
+                    </>
                   )}
                   <Button
                     variant="ghost"

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiClient } from '@/lib/apiClient';
+import { useAuth } from '@/context/AuthContext';
 
 export interface SubscriptionInfo {
   plan: 'free' | 'professional';
@@ -18,6 +19,7 @@ interface SubscriptionContextType {
   upgradeSubscription: (paymentMethod: string, transactionId: string) => Promise<void>;
   downgradeSubscription: () => Promise<void>;
   toggleAutoRenewal: (enabled: boolean) => Promise<void>;
+  cancelSubscription: () => Promise<void>;
   isFreeUser: () => boolean;
   isProfessionalUser: () => boolean;
   isSubscriptionExpired: () => boolean;
@@ -26,14 +28,22 @@ interface SubscriptionContextType {
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
+  const { isAuthenticated, user } = useAuth();
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch subscription on mount
+  // Fetch subscription whenever user changes
   useEffect(() => {
+    if (!isAuthenticated) {
+      // Clear subscription when user logs out
+      setSubscription(null);
+      return;
+    }
+    
+    // Fetch subscription for current user
     refreshSubscription();
-  }, []);
+  }, [isAuthenticated, user?.id]);
 
   const refreshSubscription = async () => {
     try {
@@ -92,6 +102,21 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const cancelSubscription = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await apiClient.cancelSubscription();
+      setSubscription(response.subscription);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to cancel subscription';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const isFreeUser = () => subscription?.plan === 'free';
   const isProfessionalUser = () => subscription?.plan === 'professional' && subscription?.status === 'active';
   const isSubscriptionExpired = () => subscription?.status === 'expired';
@@ -106,6 +131,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         upgradeSubscription,
         downgradeSubscription,
         toggleAutoRenewal,
+        cancelSubscription,
         isFreeUser,
         isProfessionalUser,
         isSubscriptionExpired,

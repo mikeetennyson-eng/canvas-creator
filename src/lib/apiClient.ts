@@ -187,6 +187,13 @@ class ApiClient {
     });
   }
 
+  async cancelSubscription(): Promise<SubscriptionResponse> {
+    return this.request<SubscriptionResponse>('/subscription/cancel', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
   // Token management
   setToken(token: string): void {
     localStorage.setItem('auth_token', token);

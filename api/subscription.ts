@@ -224,6 +224,52 @@ export async function handleSubscription(req: any): Promise<Response> {
       );
     }
 
+    // Cancel subscription (downgrade to free)
+    if (path.match(/\/subscription\/cancel$/) && req.method === 'POST') {
+      let subscription = await Subscription.findOne({ userId });
+      
+      if (!subscription) {
+        return new Response(JSON.stringify({ message: 'Subscription not found' }), { status: 404 });
+      }
+
+      // Only allow cancellation of professional plans
+      if (subscription.plan !== 'professional') {
+        return new Response(
+          JSON.stringify({ message: 'Can only cancel professional subscriptions' }),
+          { status: 400 }
+        );
+      }
+
+      const now = new Date();
+      const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      subscription.plan = 'free';
+      subscription.status = 'active';
+      subscription.price = 0;
+      subscription.currentPeriodStart = now;
+      subscription.currentPeriodEnd = periodEnd;
+      subscription.autoRenewal = false;
+      subscription.transactionId = undefined;
+      subscription.notificationSent = false;
+
+      await subscription.save();
+
+      return new Response(
+        JSON.stringify({
+          message: 'Subscription cancelled. Your account has been downgraded to free plan.',
+          subscription: {
+            plan: subscription.plan,
+            status: subscription.status,
+            currentPeriodStart: subscription.currentPeriodStart,
+            currentPeriodEnd: subscription.currentPeriodEnd,
+            autoRenewal: subscription.autoRenewal,
+            daysRemaining: null,
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log(`[Subscription] No matching route for ${req.method} ${path}`);
     return new Response(JSON.stringify({ message: 'Not found' }), { status: 404 });
   } catch (error) {
