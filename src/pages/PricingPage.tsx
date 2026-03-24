@@ -19,6 +19,7 @@ export default function PricingPage() {
   const { toast } = useToast();
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentType, setPaymentType] = useState<'recurring' | 'onetime'>('recurring');
+  const [verifyingSubscription, setVerifyingSubscription] = useState(false);
 
   // Load Razorpay script
   useEffect(() => {
@@ -48,10 +49,13 @@ export default function PricingPage() {
       if (!mounted) return;
 
       console.log('[PricingPage] Found pending subscription ID:', pendingSubscriptionId);
-      console.log('[PricingPage] Waiting 3 seconds for webhook processing...');
+      setVerifyingSubscription(true);
+
+      // Start verification immediately, don't wait for webhook
+      console.log('[PricingPage] Starting immediate verification...');
 
       // Give Razorpay webhook time to process if payment just completed
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       if (!mounted) return;
 
@@ -394,13 +398,28 @@ export default function PricingPage() {
                       : 'One-time payment, 30 days access'}
                   </div>
 
+                  {/* Verification status */}
+                  {verifyingSubscription && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                        <p className="text-sm text-green-800 font-medium">
+                          Verifying your subscription...
+                        </p>
+                      </div>
+                      <p className="text-xs text-green-600 mt-1">
+                        Redirecting to profile shortly
+                      </p>
+                    </div>
+                  )}
+
                   {/* Upgrade button */}
                   <Button
                     onClick={handleUpgrade}
-                    disabled={processingPayment || isLoading}
+                    disabled={processingPayment || isLoading || verifyingSubscription}
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
-                    {processingPayment ? 'Processing...' : 'Upgrade Now'}
+                    {processingPayment ? 'Processing...' : verifyingSubscription ? 'Verifying...' : 'Upgrade Now'}
                   </Button>
                 </div>
               )}
