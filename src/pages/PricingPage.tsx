@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useSubscription } from '@/context/SubscriptionContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
@@ -15,6 +16,7 @@ declare global {
 
 export default function PricingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { subscription, isLoading, refreshSubscription } = useSubscription();
   const { toast } = useToast();
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -194,8 +196,8 @@ export default function PricingPage() {
           }
         },
         prefill: {
-          name: 'User',
-          email: 'user@example.com',
+          name: user?.name || 'Customer',
+          email: user?.email || '',
         },
         theme: {
           color: '#2563eb',
@@ -285,8 +287,8 @@ export default function PricingPage() {
           }
         },
         prefill: {
-          name: 'User',
-          email: 'user@example.com',
+          name: user?.name || 'Customer',
+          email: user?.email || '',
         },
         theme: {
           color: '#2563eb',
