@@ -19,6 +19,7 @@ export default function PricingPage() {
   const { toast } = useToast();
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentType, setPaymentType] = useState<'recurring' | 'onetime'>('recurring');
+  const [verifyingSubscription, setVerifyingSubscription] = useState(false);
 
   // Load Razorpay script
   useEffect(() => {
@@ -33,6 +34,69 @@ export default function PricingPage() {
     };
   }, []);
 
+  // Check for pending subscription verification after Razorpay redirect
+  useEffect(() => {
+    const verifyPendingSubscription = async () => {
+      const pendingSubscriptionId = localStorage.getItem('pendingSubscriptionId');
+      
+      if (pendingSubscriptionId && !verifyingSubscription) {
+        console.log('[PricingPage] Verifying pending subscription:', pendingSubscriptionId);
+        setVerifyingSubscription(true);
+
+        try {
+          // Give Razorpay webhook time to process if payment just completed
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          const response = await apiClient.verifyRecurringSubscription(pendingSubscriptionId);
+          console.log('[PricingPage] Subscription verified:', response);
+
+          // Clear pending subscription ID
+          localStorage.removeItem('pendingSubscriptionId');
+
+          // Refresh subscription context
+          await refreshSubscription();
+
+          toast({
+            title: 'Success!',
+            description: 'Your subscription has been upgraded to Professional plan.',
+          });
+
+          // Redirect to profile
+          navigate('/profile');
+        } catch (error) {
+          console.error('[PricingPage] Subscription verification failed:', error);
+          
+          // Check if subscription was actually activated (webhook might have done it)
+          try {
+            await refreshSubscription();
+            if (subscription?.plan === 'professional') {
+              console.log('[PricingPage] Subscription confirmed via refresh');
+              localStorage.removeItem('pendingSubscriptionId');
+              toast({
+                title: 'Success!',
+                description: 'Your subscription has been upgraded to Professional plan.',
+              });
+              navigate('/profile');
+              return;
+            }
+          } catch {}
+
+          // Otherwise show error
+          const errorMessage = error instanceof Error ? error.message : 'Subscription verification failed';
+          toast({
+            title: 'Verification Pending',
+            description: `${errorMessage} Please try again in a moment or contact support.`,
+            variant: 'destructive',
+          });
+        } finally {
+          setVerifyingSubscription(false);
+        }
+      }
+    };
+
+    verifyPendingSubscription();
+  }, []);
+
   const handleUpgradeRecurring = async () => {
     try {
       setProcessingPayment(true);
@@ -42,13 +106,19 @@ export default function PricingPage() {
       console.log('[Upgrade] Creating recurring subscription...');
       const subscriptionResponse = await apiClient.createRazorpaySubscription(true);
       const paymentLink = subscriptionResponse.subscription.paymentLink;
-      console.log('[Upgrade] Subscription created:', subscriptionResponse.subscription.subscriptionId);
+      const subscriptionId = subscriptionResponse.subscription.subscriptionId;
+      console.log('[Upgrade] Subscription created:', subscriptionId);
+
+      // Store subscription ID to verify after payment
+      localStorage.setItem('pendingSubscriptionId', subscriptionId);
+      console.log('[Upgrade] Stored pending subscription ID:', subscriptionId);
 
       // Step 2: Redirect to payment link
       console.log('[Upgrade] Redirecting to payment link:', paymentLink);
       window.location.href = paymentLink;
     } catch (error) {
       console.error('[Upgrade] Recurring subscription error:', error);
+      localStorage.removeItem('pendingSubscriptionId');
       setProcessingPayment(false);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create subscription';
       toast({

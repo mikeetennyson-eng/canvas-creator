@@ -743,6 +743,83 @@ export default async function handler(req: any, res: any): Promise<void> {
         }
         return;
       }
+
+      // Verify recurring subscription
+      if (path === '/api/subscription/verify-subscription' && req.method === 'POST') {
+        try {
+          const body = await parseBody(req);
+          const { subscriptionId } = body;
+
+          if (!subscriptionId) {
+            res.status(400).json({ message: 'Subscription ID required' });
+            return;
+          }
+
+          console.log('[API] Verifying recurring subscription:', subscriptionId);
+
+          // Fetch subscription from Razorpay
+          let razorpaySubscription;
+          try {
+            const { getSubscriptionDetails } = await import('./config/razorpay.js');
+            razorpaySubscription = await getSubscriptionDetails(subscriptionId);
+            console.log('[API] Razorpay subscription status:', razorpaySubscription.status);
+          } catch (error) {
+            console.error('[API] Error fetching Razorpay subscription:', error);
+            throw new Error('Failed to verify subscription with payment provider');
+          }
+
+          let subscription = await Subscription.findOne({ userId });
+
+          if (!subscription) {
+            res.status(404).json({ message: 'Subscription not found' });
+            return;
+          }
+
+          // Update subscription based on Razorpay status
+          if (razorpaySubscription.status === 'active' || razorpaySubscription.status === 'authenticated') {
+            const now = new Date();
+            const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+            subscription.plan = 'professional';
+            subscription.status = 'active';
+            subscription.price = 40000;
+            subscription.currentPeriodStart = now;
+            subscription.currentPeriodEnd = periodEnd;
+            subscription.autoRenewal = true;
+            subscription.paymentMethod = 'razorpay';
+            subscription.subscriptionId = subscriptionId;
+            subscription.notificationSent = false;
+
+            await subscription.save();
+
+            console.log('[API] Subscription verified and upgraded:', subscription._id);
+
+            res.status(200).json({
+              message: 'Subscription verified and activated',
+              subscription: {
+                plan: subscription.plan,
+                status: subscription.status,
+                currentPeriodStart: subscription.currentPeriodStart,
+                currentPeriodEnd: subscription.currentPeriodEnd,
+                autoRenewal: subscription.autoRenewal,
+                daysRemaining: Math.ceil((periodEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)),
+              },
+            });
+          } else {
+            res.status(400).json({
+              message: `Subscription verification failed. Status: ${razorpaySubscription.status}`,
+              razorpayStatus: razorpaySubscription.status,
+            });
+          }
+        } catch (error) {
+          console.error('Verify subscription error:', error);
+          res.status(500).json({
+            message: 'Failed to verify subscription',
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+        return;
+      }
     }
 
     // 404 - Not found

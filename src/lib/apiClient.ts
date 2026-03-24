@@ -244,6 +244,13 @@ class ApiClient {
     });
   }
 
+  async verifyRecurringSubscription(subscriptionId: string): Promise<SubscriptionResponse> {
+    return this.request<SubscriptionResponse>('/subscription/verify-subscription', {
+      method: 'POST',
+      body: JSON.stringify({ subscriptionId }),
+    });
+  }
+
   // Token management
   setToken(token: string): void {
     localStorage.setItem('auth_token', token);
