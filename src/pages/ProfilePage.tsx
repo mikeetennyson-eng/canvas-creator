@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
 import { Sparkles, ArrowRight, Calendar, Trash2, Edit2, ExternalLink, Crown, AlertCircle, RefreshCw } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
 
 interface Canvas {
   _id: string;
@@ -20,7 +19,7 @@ interface Canvas {
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { subscription, toggleAutoRenewal, isLoading: subscriptionLoading, refreshSubscription } = useSubscription();
+  const { subscription, isLoading: subscriptionLoading, refreshSubscription } = useSubscription();
   const { toast } = useToast();
   const [canvases, setCanvases] = useState<Canvas[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,48 +55,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleToggleAutoRenewal = async () => {
-    try {
-      setAutoRenewalLoading(true);
-      
-      if (!subscription) {
-        throw new Error('Subscription not found');
-      }
 
-      // Toggle the auto-renewal setting
-      const newAutoRenewalState = !subscription.autoRenewal;
-      await toggleAutoRenewal(newAutoRenewalState);
-
-      // Refresh subscription info from server to ensure state is correct
-      setTimeout(async () => {
-        try {
-          await refreshSubscription();
-          
-          // Show success message
-          toast({
-            title: 'Success',
-            description: `Auto-renewal has been ${newAutoRenewalState ? 'enabled' : 'disabled'}.`,
-          });
-        } catch {
-          // If refresh fails, still show success since the toggle API succeeded
-          toast({
-            title: 'Success',
-            description: `Auto-renewal has been ${newAutoRenewalState ? 'enabled' : 'disabled'}.`,
-          });
-        }
-      }, 500);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to toggle auto-renewal';
-      console.error('Failed to toggle auto-renewal:', err);
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    } finally {
-      setAutoRenewalLoading(false);
-    }
-  };
 
   const handleCancelSubscription = async () => {
     if (!confirm('Are you sure you want to cancel your subscription? This will downgrade you to the free plan with a 20-icon limit.')) {
@@ -245,24 +203,31 @@ export default function ProfilePage() {
                 </div>
 
                 {subscription.plan === 'professional' && (
-                  <div className="flex items-center justify-between bg-background/50 rounded-lg p-4">
-                    <div className="flex items-center gap-2">
-                      <RefreshCw className="w-5 h-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-semibold">Auto-renewal</p>
-                        <p className="text-sm text-muted-foreground">
-                          {subscription.autoRenewal 
-                            ? 'Enabled - Your plan will renew automatically'
-                            : 'Disabled - You will need to renew manually'}
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      checked={subscription.autoRenewal}
-                      onCheckedChange={handleToggleAutoRenewal}
-                      disabled={autoRenewalLoading}
-                    />
-                  </div>
+                  <div className="bg-background/50 rounded-lg p-4">
+                  <p className="font-semibold">Billing</p>
+                  {subscription.plan === 'professional' ? (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        This is a recurring subscription; it renews automatically each month.
+                      </p>
+                      <p className="text-sm text-green-700 mt-1">
+                        Next renewal: {subscription.currentPeriodEnd ? formatDate(subscription.currentPeriodEnd) : 'N/A'}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        This is a one-time access plan. Your access expires on:
+                      </p>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        {subscription.currentPeriodEnd ? formatDate(subscription.currentPeriodEnd) : 'N/A'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        To enable auto-renewal, upgrade to the subscription model on the pricing page.
+                      </p>
+                    </>
+                  )}
+                </div>
                 )}
 
                 <div className="flex gap-3 mt-6">
