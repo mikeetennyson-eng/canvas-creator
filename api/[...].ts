@@ -785,8 +785,9 @@ export default async function handler(req: any, res: any): Promise<void> {
             return;
           }
 
-          // Update subscription based on Razorpay status
-          if (['active', 'authenticated', 'trialing'].includes(razorpaySubscription.status)) {
+          // Treat these status values as acceptable activation states for immediate UX
+          const acceptableStatuses = ['active', 'authenticated', 'created', 'pending', 'trialing'];
+          if (acceptableStatuses.includes(razorpaySubscription.status)) {
             const now = new Date();
             const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -805,7 +806,7 @@ export default async function handler(req: any, res: any): Promise<void> {
             console.log('[API] Subscription verified and upgraded:', subscription._id);
 
             res.status(200).json({
-              message: 'Subscription verified and activated',
+              message: `Subscription verified and activated (Razorpay status: ${razorpaySubscription.status})`,
               subscription: {
                 plan: subscription.plan,
                 status: subscription.status,
@@ -814,10 +815,11 @@ export default async function handler(req: any, res: any): Promise<void> {
                 autoRenewal: subscription.autoRenewal,
                 daysRemaining: Math.ceil((periodEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)),
               },
+              razorpayStatus: razorpaySubscription.status,
             });
           } else {
-            res.status(400).json({
-              message: `Subscription verification failed. Status: ${razorpaySubscription.status}`,
+            res.status(202).json({
+              message: `Subscription pending: Razorpay status ${razorpaySubscription.status}. Verify again after a few seconds.`,
               razorpayStatus: razorpaySubscription.status,
             });
           }
