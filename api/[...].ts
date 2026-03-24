@@ -12,6 +12,7 @@ import {
   verifyPaymentSignature,
   createRazorpayPlan,
   createRazorpaySubscription,
+  getSubscriptionDetails,
 } from './config/razorpay.js';
 import { handleRazorpayWebhook } from './webhooks/razorpay.js';
 import { checkExpiringSubscriptions } from './services/autoRenewal.js';
@@ -760,7 +761,6 @@ export default async function handler(req: any, res: any): Promise<void> {
           // Fetch subscription from Razorpay
           let razorpaySubscription;
           try {
-            const { getSubscriptionDetails } = await import('./config/razorpay.js');
             razorpaySubscription = await getSubscriptionDetails(subscriptionId);
             console.log('[API] Razorpay subscription status:', razorpaySubscription.status);
           } catch (error) {

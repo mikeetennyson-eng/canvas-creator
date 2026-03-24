@@ -19,7 +19,6 @@ export default function PricingPage() {
   const { toast } = useToast();
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentType, setPaymentType] = useState<'recurring' | 'onetime'>('recurring');
-  const [verifyingSubscription, setVerifyingSubscription] = useState(false);
 
   // Load Razorpay script
   useEffect(() => {
@@ -36,66 +35,95 @@ export default function PricingPage() {
 
   // Check for pending subscription verification after Razorpay redirect
   useEffect(() => {
-    const verifyPendingSubscription = async () => {
+    let mounted = true;
+
+    (async () => {
       const pendingSubscriptionId = localStorage.getItem('pendingSubscriptionId');
       
-      if (pendingSubscriptionId && !verifyingSubscription) {
-        console.log('[PricingPage] Verifying pending subscription:', pendingSubscriptionId);
-        setVerifyingSubscription(true);
-
-        try {
-          // Give Razorpay webhook time to process if payment just completed
-          await new Promise(resolve => setTimeout(resolve, 2000));
-
-          const response = await apiClient.verifyRecurringSubscription(pendingSubscriptionId);
-          console.log('[PricingPage] Subscription verified:', response);
-
-          // Clear pending subscription ID
-          localStorage.removeItem('pendingSubscriptionId');
-
-          // Refresh subscription context
-          await refreshSubscription();
-
-          toast({
-            title: 'Success!',
-            description: 'Your subscription has been upgraded to Professional plan.',
-          });
-
-          // Redirect to profile
-          navigate('/profile');
-        } catch (error) {
-          console.error('[PricingPage] Subscription verification failed:', error);
-          
-          // Check if subscription was actually activated (webhook might have done it)
-          try {
-            await refreshSubscription();
-            if (subscription?.plan === 'professional') {
-              console.log('[PricingPage] Subscription confirmed via refresh');
-              localStorage.removeItem('pendingSubscriptionId');
-              toast({
-                title: 'Success!',
-                description: 'Your subscription has been upgraded to Professional plan.',
-              });
-              navigate('/profile');
-              return;
-            }
-          } catch {}
-
-          // Otherwise show error
-          const errorMessage = error instanceof Error ? error.message : 'Subscription verification failed';
-          toast({
-            title: 'Verification Pending',
-            description: `${errorMessage} Please try again in a moment or contact support.`,
-            variant: 'destructive',
-          });
-        } finally {
-          setVerifyingSubscription(false);
-        }
+      if (!pendingSubscriptionId) {
+        console.log('[PricingPage] No pending subscription ID found');
+        return;
       }
-    };
 
-    verifyPendingSubscription();
-  }, []);
+      if (!mounted) return;
+
+      console.log('[PricingPage] Found pending subscription ID:', pendingSubscriptionId);
+      console.log('[PricingPage] Waiting 3 seconds for webhook processing...');
+
+      // Give Razorpay webhook time to process if payment just completed
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      if (!mounted) return;
+
+      try {
+        console.log('[PricingPage] Verifying subscription with backend...');
+        const response = await apiClient.verifyRecurringSubscription(pendingSubscriptionId);
+        console.log('[PricingPage] Subscription verified successfully:', response);
+
+        if (!mounted) return;
+
+        // Clear pending subscription ID
+        localStorage.removeItem('pendingSubscriptionId');
+
+        // Refresh subscription context
+        console.log('[PricingPage] Refreshing subscription context...');
+        await refreshSubscription();
+
+        toast({
+          title: 'Success!',
+          description: 'Your subscription has been upgraded to Professional plan.',
+        });
+
+        // Redirect to profile
+        console.log('[PricingPage] Redirecting to profile...');
+        navigate('/profile');
+      } catch (error) {
+        if (!mounted) return;
+
+        console.error('[PricingPage] Initial verification failed:', error);
+        
+        // Try refreshing subscription in case webhook already processed it
+        console.log('[PricingPage] Attempting fallback: refreshing subscription...');
+        try {
+          await refreshSubscription();
+          
+          // Check subscription after refresh
+          const updated = await apiClient.getSubscriptionInfo();
+          console.log('[PricingPage] Subscription after refresh:', updated.subscription.plan);
+          
+          if (updated.subscription.plan === 'professional') {
+            console.log('[PricingPage] SUCCESS: Subscription confirmed via webhook');
+            localStorage.removeItem('pendingSubscriptionId');
+            toast({
+              title: 'Success!',
+              description: 'Your subscription has been activated! Redirecting...',
+            });
+            // Give toast time to show
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (mounted) navigate('/profile');
+            return;
+          }
+        } catch (refreshError) {
+          console.error('[PricingPage] Refresh failed:', refreshError);
+        }
+
+        // If we get here, verification failed
+        const errorMessage = error instanceof Error ? error.message : 'Failed to verify subscription';
+        console.error('[PricingPage] Verification completely failed:', errorMessage);
+        
+        // Keep subscription ID in localStorage for user to retry
+        toast({
+          title: 'Verification Pending',
+          description: 'Payment confirmed but verification is taking longer. You are now a professional member. Please refresh the page.',
+          variant: 'default',
+        });
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [navigate, refreshSubscription, toast]);
 
   const handleUpgradeRecurring = async () => {
     try {
