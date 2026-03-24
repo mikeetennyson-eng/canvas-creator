@@ -47,27 +47,24 @@ export async function createRazorpaySubscription(
   customerId: string,
   planId: string,
   quantity: number = 1,
-  totalCount: number = 0 // 0 = infinite
+  totalCount: number = 0 // 0 = use default (1200 for ~100 years)
 ) {
   const razorpay = getRazorpayInstance();
 
   try {
-    const subscriptionPayload: any = {
+    // Razorpay requires either total_count OR end_at
+    // For infinite subscriptions, use a large total_count (1200 = ~100 years of monthly charges)
+    const finalTotalCount = totalCount > 0 ? totalCount : 1200;
+
+    const subscription = await razorpay.subscriptions.create({
       plan_id: planId,
       customer_notify: 1, // Send notification to customer
       quantity: quantity,
+      total_count: finalTotalCount,
       notes: {
         customerId: customerId,
       },
-    };
-
-    // Only include total_count if it's greater than 0
-    // If omitted or 0, Razorpay treats it as infinite subscription
-    if (totalCount > 0) {
-      subscriptionPayload.total_count = totalCount;
-    }
-
-    const subscription = await razorpay.subscriptions.create(subscriptionPayload);
+    });
 
     return subscription;
   } catch (error) {
