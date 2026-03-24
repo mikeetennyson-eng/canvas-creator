@@ -123,6 +123,26 @@ export function verifyPaymentSignature(
   return expectedSignature === signature;
 }
 
+// Verify subscription signature
+export function verifySubscriptionSignature(
+  paymentId: string,
+  subscriptionId: string,
+  signature: string
+): boolean {
+  const secret = process.env.RAZORPAY_KEY_SECRET;
+  if (!secret) {
+    throw new Error('RAZORPAY_KEY_SECRET not configured');
+  }
+
+  const message = `${paymentId}|${subscriptionId}`;
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(message)
+    .digest('hex');
+
+  return expectedSignature === signature;
+}
+
 // Verify webhook signature
 export function verifyWebhookSignature(
   body: string,

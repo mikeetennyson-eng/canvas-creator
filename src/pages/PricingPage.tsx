@@ -132,26 +132,90 @@ export default function PricingPage() {
   const handleUpgradeRecurring = async () => {
     try {
       setProcessingPayment(true);
+      setVerifyingSubscription(true);
       console.log('[Upgrade] Starting recurring subscription flow...');
 
       // Step 1: Create Razorpay subscription
       console.log('[Upgrade] Creating recurring subscription...');
       const subscriptionResponse = await apiClient.createRazorpaySubscription(true);
-      const paymentLink = subscriptionResponse.subscription.paymentLink;
       const subscriptionId = subscriptionResponse.subscription.subscriptionId;
+      const subscriptionShortUrl = subscriptionResponse.subscription.paymentLink;
       console.log('[Upgrade] Subscription created:', subscriptionId);
 
-      // Store subscription ID to verify after payment
-      localStorage.setItem('pendingSubscriptionId', subscriptionId);
-      console.log('[Upgrade] Stored pending subscription ID:', subscriptionId);
+      // Step 2: Open Razorpay checkout popup for subscription
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      if (!razorpayKey) {
+        throw new Error('Razorpay key not configured');
+      }
 
-      // Step 2: Redirect to payment link
-      console.log('[Upgrade] Redirecting to payment link:', paymentLink);
-      window.location.href = paymentLink;
+      if (!window.Razorpay) {
+        console.warn('[Upgrade] Razorpay script not loaded, falling back to redirect.');
+        window.location.href = subscriptionShortUrl;
+        return;
+      }
+
+      const options = {
+        key: razorpayKey,
+        subscription_id: subscriptionId,
+        name: 'Canvas Creator',
+        description: 'Professional Plan - Auto-Renewing',
+        handler: async (response: any) => {
+          console.log('[Upgrade] Recurring payment handler response:', response);
+          try {
+            const verifyResponse = await apiClient.verifyRecurringSubscription(
+              subscriptionId,
+              response.razorpay_payment_id,
+              response.razorpay_signature
+            );
+            console.log('[Upgrade] Subscription verified:', verifyResponse);
+
+            localStorage.removeItem('pendingSubscriptionId');
+            await refreshSubscription();
+
+            toast({
+              title: 'Success!',
+              description: 'Your subscription has been upgraded to Professional plan.',
+            });
+
+            setProcessingPayment(false);
+            setVerifyingSubscription(false);
+
+            navigate('/profile');
+          } catch (verificationError) {
+            console.error('[Upgrade] Recurring verification failed:', verificationError);
+            setProcessingPayment(false);
+            setVerifyingSubscription(false);
+
+            toast({
+              title: 'Verification failed',
+              description: 'Subscription could not be verified immediately. Please refresh the page in a moment.',
+              variant: 'destructive',
+            });
+          }
+        },
+        prefill: {
+          name: 'User',
+          email: 'user@example.com',
+        },
+        theme: {
+          color: '#2563eb',
+        },
+        modal: {
+          ondismiss: () => {
+            console.log('[Upgrade] Recurring checkout dismissed');
+            setProcessingPayment(false);
+            setVerifyingSubscription(false);
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
     } catch (error) {
       console.error('[Upgrade] Recurring subscription error:', error);
       localStorage.removeItem('pendingSubscriptionId');
       setProcessingPayment(false);
+      setVerifyingSubscription(false);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create subscription';
       toast({
         title: 'Error',

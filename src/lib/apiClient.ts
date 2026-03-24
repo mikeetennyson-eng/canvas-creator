@@ -244,10 +244,14 @@ class ApiClient {
     });
   }
 
-  async verifyRecurringSubscription(subscriptionId: string): Promise<SubscriptionResponse> {
+  async verifyRecurringSubscription(
+    subscriptionId: string,
+    paymentId?: string,
+    signature?: string
+  ): Promise<SubscriptionResponse> {
     return this.request<SubscriptionResponse>('/subscription/verify-subscription', {
       method: 'POST',
-      body: JSON.stringify({ subscriptionId }),
+      body: JSON.stringify({ subscriptionId, paymentId, signature }),
     });
   }
 

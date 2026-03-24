@@ -10,6 +10,7 @@ import { generateToken } from './config/jwt.js';
 import {
   createRazorpayOrder,
   verifyPaymentSignature,
+  verifySubscriptionSignature,
   createRazorpayPlan,
   createRazorpaySubscription,
   getSubscriptionDetails,
@@ -749,7 +750,7 @@ export default async function handler(req: any, res: any): Promise<void> {
       if (path === '/api/subscription/verify-subscription' && req.method === 'POST') {
         try {
           const body = await parseBody(req);
-          const { subscriptionId } = body;
+          const { subscriptionId, paymentId, signature } = body;
 
           if (!subscriptionId) {
             res.status(400).json({ message: 'Subscription ID required' });
@@ -758,6 +759,15 @@ export default async function handler(req: any, res: any): Promise<void> {
 
           console.log('[API] Verifying recurring subscription:', subscriptionId);
 
+          // Validate Razorpay signature when payment info is present
+          if (paymentId && signature) {
+            const validSig = verifySubscriptionSignature(paymentId, subscriptionId, signature);
+            if (!validSig) {
+              res.status(400).json({ message: 'Invalid razorpay signature' });
+              return;
+            }
+          }
+
           // Fetch subscription from Razorpay
           let razorpaySubscription;
           try {
@@ -765,7 +775,7 @@ export default async function handler(req: any, res: any): Promise<void> {
             console.log('[API] Razorpay subscription status:', razorpaySubscription.status);
           } catch (error) {
             console.error('[API] Error fetching Razorpay subscription:', error);
-            throw new Error('Failed to verify subscription with payment provider');
+            return res.status(500).json({ message: 'Failed to verify subscription with payment provider' });
           }
 
           let subscription = await Subscription.findOne({ userId });
@@ -776,7 +786,7 @@ export default async function handler(req: any, res: any): Promise<void> {
           }
 
           // Update subscription based on Razorpay status
-          if (razorpaySubscription.status === 'active' || razorpaySubscription.status === 'authenticated') {
+          if (['active', 'authenticated', 'trialing'].includes(razorpaySubscription.status)) {
             const now = new Date();
             const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
