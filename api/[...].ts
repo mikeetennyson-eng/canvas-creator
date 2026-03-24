@@ -108,7 +108,7 @@ export default async function handler(req: any, res: any): Promise<void> {
             autoRenewal: false,
           });
 
-          const token = generateToken(user._id.toString());
+          const token = generateToken({ id: user._id.toString(), email: user.email });
 
           res.status(201).json({
             message: 'User created successfully',
@@ -145,7 +145,7 @@ export default async function handler(req: any, res: any): Promise<void> {
             return;
           }
 
-          const token = generateToken(user._id.toString());
+          const token = generateToken({ id: user._id.toString(), email: user.email });
 
           res.status(200).json({
             message: 'Login successful',
