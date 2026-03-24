@@ -52,15 +52,22 @@ export async function createRazorpaySubscription(
   const razorpay = getRazorpayInstance();
 
   try {
-    const subscription = await razorpay.subscriptions.create({
+    const subscriptionPayload: any = {
       plan_id: planId,
       customer_notify: 1, // Send notification to customer
       quantity: quantity,
-      total_count: totalCount, // 0 = infinite
       notes: {
         customerId: customerId,
       },
-    });
+    };
+
+    // Only include total_count if it's greater than 0
+    // If omitted or 0, Razorpay treats it as infinite subscription
+    if (totalCount > 0) {
+      subscriptionPayload.total_count = totalCount;
+    }
+
+    const subscription = await razorpay.subscriptions.create(subscriptionPayload);
 
     return subscription;
   } catch (error) {
