@@ -105,8 +105,7 @@ const subscriptionSchema = new Schema<ISubscription>(
   { timestamps: true }
 );
 
-// Index for efficient querying
-subscriptionSchema.index({ userId: 1 });
+// Index for efficient querying (userId has unique: true which creates index automatically)
 subscriptionSchema.index({ currentPeriodEnd: 1 });
 
 export default mongoose.model<ISubscription>('Subscription', subscriptionSchema);
