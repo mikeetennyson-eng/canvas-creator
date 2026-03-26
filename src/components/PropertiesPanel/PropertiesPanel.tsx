@@ -158,31 +158,6 @@ export default function PropertiesPanel() {
                 />
               </div>
             )}
-            {/* Text color with auto dark mode option */}
-            {selected.type === 'text' && (
-              <div className="flex gap-1.5">
-                <button
-                  onClick={() => update({ fill: 'auto' })}
-                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium border transition-colors ${
-                    selected.fill === 'auto'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-input bg-background text-muted-foreground hover:bg-secondary'
-                  }`}
-                >
-                  Auto
-                </button>
-                <button
-                  onClick={() => update({ fill: '#1a1a1a' })}
-                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium border transition-colors ${
-                    selected.fill && selected.fill !== 'auto' && selected.fill !== 'none'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-input bg-background text-muted-foreground hover:bg-secondary'
-                  }`}
-                >
-                  Custom
-                </button>
-              </div>
-            )}
           </fieldset>
         )}
 

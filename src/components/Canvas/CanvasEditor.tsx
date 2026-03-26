@@ -434,7 +434,6 @@ function CanvasText({ element, isSelected, onSelect }: { element: CanvasElement;
   const textRef = useRef<Konva.Text>(null);
   const trRef = useRef<Konva.Transformer>(null);
   const updateElement = useCanvasStore((s) => s.updateElement);
-  const isDarkMode = document.documentElement.classList.contains('dark');
 
   React.useEffect(() => {
     if (isSelected && trRef.current && textRef.current) {
@@ -442,12 +441,6 @@ function CanvasText({ element, isSelected, onSelect }: { element: CanvasElement;
       trRef.current.getLayer()?.batchDraw();
     }
   }, [isSelected]);
-
-  // Determine text color - 'auto' uses white in dark mode, black in light mode
-  let textColor = element.fill || 'auto';
-  if (textColor === 'auto') {
-    textColor = isDarkMode ? '#ffffff' : '#1a1a1a';
-  }
 
   return (
     <>
@@ -458,7 +451,7 @@ function CanvasText({ element, isSelected, onSelect }: { element: CanvasElement;
         y={element.y}
         fontSize={element.fontSize || 16}
         fontFamily="DM Sans"
-        fill={textColor}
+        fill={element.fill || '#1a1a1a'}
         rotation={element.rotation}
         opacity={element.opacity}
         draggable
