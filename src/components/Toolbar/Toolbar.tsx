@@ -1,7 +1,7 @@
 import {
   MousePointer2, Square, Circle, Type, ArrowUpRight,
   Download, FileJson, ScrollText, ZoomIn, ZoomOut,
-  Undo2, Redo2, Sun, Moon, Home, Save, Clock, Plus, Trash2,
+  Undo2, Redo2, Home, Save, Clock, Plus, Trash2,
 } from 'lucide-react';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { useIconStore } from '@/stores/iconStore';
@@ -18,18 +18,11 @@ const tools: { id: ToolType; icon: typeof MousePointer2; label: string }[] = [
   { id: 'arrow', icon: ArrowUpRight, label: 'Arrow' },
 ]
 
-import { Plus, Trash2 } from 'lucide-react';
-
 export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isSaving?: boolean }) {
   const navigate = useNavigate();
   const { activeTool, setActiveTool, zoom, setZoom, getCanvasJSON, elements, selectedIds, setSelectedIds, removeSelected } = useCanvasStore();
   const usedIcons = useIconStore((s) => s.usedIcons);
   const [showAttrModal, setShowAttrModal] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-  }, [darkMode]);
 
   const handleExportPNG = () => {
     const stageEl = document.querySelector('.konvajs-content canvas') as HTMLCanvasElement | null;
@@ -170,14 +163,7 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
             Recent Edits
           </button>
 
-          <div className="mx-1.5 h-5 w-px bg-border" />
 
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="rounded p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground active:scale-95 transition-all"
-          >
-            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
         </div>
       </div>
 
