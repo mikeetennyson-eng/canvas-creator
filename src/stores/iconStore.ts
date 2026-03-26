@@ -41,7 +41,7 @@ export const useIconStore = create<IconStore>((set, get) => ({
       return { usedIcons: [...s.usedIcons, icon] };
     }),
 
-  removeUsedIcon: (iconId) =>
+  removeUsedIcon: (iconId: string) =>
     set((s) => ({ usedIcons: s.usedIcons.filter((u) => u.id !== iconId) })),
 
   getAttributionText: () => {

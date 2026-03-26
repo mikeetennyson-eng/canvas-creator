@@ -106,19 +106,10 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
           {/* Attribution */}
           <button
             onClick={() => setShowAttrModal(true)}
-            className={`relative flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all active:scale-95 ${
-              attributionRequired.length > 0
-                ? 'bg-attribution-badge/15 text-attribution-badge hover:bg-attribution-badge/25'
-                : 'text-muted-foreground hover:bg-secondary'
-            }`}
+            className="relative flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary active:scale-95"
           >
             <ScrollText className="h-3.5 w-3.5" />
             Attributions
-            {attributionRequired.length > 0 && (
-              <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-attribution-badge px-1 text-[10px] font-bold text-card">
-                {attributionRequired.length}
-              </span>
-            )}
           </button>
 
           <div className="mx-1.5 h-5 w-px bg-border" />

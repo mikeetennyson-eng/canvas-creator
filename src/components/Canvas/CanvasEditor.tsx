@@ -12,24 +12,24 @@ function CanvasIcon({ element, isSelected, onSelect }: { element: CanvasElement;
   const cropRectRef = useRef<Konva.Rect>(null);
   const trRef = useRef<Konva.Transformer>(null);
   const updateElement = useCanvasStore((s) => s.updateElement);
-  const [img, setImg] = React.useState<HTMLImageElement | null>(null);
-  const [cropBoxState, setCropBoxState] = React.useState({
+  const [img, setImg] = useState<HTMLImageElement | null>(null);
+  const [cropBoxState, setCropBoxState] = useState({
     x: element.cropBox?.x ?? 0,
     y: element.cropBox?.y ?? 0,
     width: element.cropBox?.width ?? element.width,
     height: element.cropBox?.height ?? element.height,
   });
-  const [draggingHandle, setDraggingHandle] = React.useState<string | null>(null);
-  const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
+  const [draggingHandle, setDraggingHandle] = useState<string | null>(null);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-  React.useEffect(() => {
+  useEffect(() => {
     const image = new window.Image();
     const url = element.svg_url || (element.iconData ? generateIconDataUrl(element.iconData.category, element.iconData.name, 128) : '');
     image.src = url;
     image.onload = () => setImg(image);
   }, [element.svg_url, element.iconData]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isSelected && !element.cropMode && trRef.current) {
       // If cropped, attach transformer to the crop boundary rect 
       // so it shows the crop region size, not the full image size
@@ -42,14 +42,14 @@ function CanvasIcon({ element, isSelected, onSelect }: { element: CanvasElement;
   }, [isSelected, element.cropMode, element.cropBox]);
 
   // Update crop box state when element changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (element.cropBox) {
       setCropBoxState(element.cropBox);
     }
   }, [element.cropBox]);
 
   // Add global mouse up handler to catch drags outside the canvas
-  React.useEffect(() => {
+  useEffect(() => {
     const handleGlobalMouseUp = () => {
       if (draggingHandle) {
         setDraggingHandle(null);
@@ -379,7 +379,7 @@ function CanvasShape({ element, isSelected, onSelect }: { element: CanvasElement
   const trRef = useRef<Konva.Transformer>(null);
   const updateElement = useCanvasStore((s) => s.updateElement);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isSelected && trRef.current && shapeRef.current) {
       trRef.current.nodes([shapeRef.current]);
       trRef.current.getLayer()?.batchDraw();
@@ -435,7 +435,7 @@ function CanvasText({ element, isSelected, onSelect }: { element: CanvasElement;
   const trRef = useRef<Konva.Transformer>(null);
   const updateElement = useCanvasStore((s) => s.updateElement);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isSelected && trRef.current && textRef.current) {
       trRef.current.nodes([textRef.current]);
       trRef.current.getLayer()?.batchDraw();
@@ -491,8 +491,6 @@ function CanvasArrow({ element, isSelected, onSelect }: { element: CanvasElement
   );
 }
 
-import React from 'react';
-
 export default function CanvasEditor() {
   const {
     elements, selectedIds, setSelectedIds, clearSelection,
@@ -501,7 +499,7 @@ export default function CanvasEditor() {
   const trackUsedIcon = useIconStore((s) => s.trackUsedIcon);
   const stageRef = useRef<Konva.Stage>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [stageSize, setStageSize] = React.useState({ width: 800, height: 600 });
+  const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
 
   // Resize observer
   useEffect(() => {
@@ -691,3 +689,4 @@ export default function CanvasEditor() {
     </div>
   );
 }
+

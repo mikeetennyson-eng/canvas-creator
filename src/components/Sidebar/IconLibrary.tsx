@@ -64,11 +64,6 @@ function IconCard({
       onDragStart={handleDragStart}
       className="group relative flex flex-col items-center gap-1.5 rounded-lg border border-transparent p-2.5 transition-all duration-200 hover:border-border hover:bg-secondary/60 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      {icon.attribution_required && (
-        <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-attribution-badge text-[9px] text-foreground" title="Attribution required">
-          ⚠️
-        </span>
-      )}
       {dataUrl ? (
         <img src={dataUrl} alt={icon.name} className="h-10 w-10 object-contain" loading="lazy" />
       ) : (
