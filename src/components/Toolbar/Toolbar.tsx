@@ -1,6 +1,6 @@
 import {
   MousePointer2, Square, Circle, Type, ArrowUpRight,
-  Download, FileJson, ScrollText, ZoomIn, ZoomOut,
+  Download, ScrollText, ZoomIn, ZoomOut,
   Undo2, Redo2, Home, Save, Clock, Plus, Trash2,
 } from 'lucide-react';
 import { useCanvasStore } from '@/stores/canvasStore';
@@ -20,7 +20,7 @@ const tools: { id: ToolType; icon: typeof MousePointer2; label: string }[] = [
 
 export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isSaving?: boolean }) {
   const navigate = useNavigate();
-  const { activeTool, setActiveTool, zoom, setZoom, getCanvasJSON, elements, selectedIds, setSelectedIds, removeSelected } = useCanvasStore();
+  const { activeTool, setActiveTool, zoom, setZoom, elements, selectedIds, setSelectedIds, removeSelected } = useCanvasStore();
   const usedIcons = useIconStore((s) => s.usedIcons);
   const [showAttrModal, setShowAttrModal] = useState(false);
 
@@ -33,15 +33,6 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
     link.click();
   };
 
-  const handleExportJSON = () => {
-    const json = getCanvasJSON();
-    const blob = new Blob([json], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.download = 'diagram.json';
-    link.href = URL.createObjectURL(blob);
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
 
   const attributionRequired = usedIcons.filter((i) => i.attribution_required);
 
@@ -117,10 +108,6 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
           <button onClick={handleExportPNG} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95">
             <Download className="h-3.5 w-3.5" />
             PNG
-          </button>
-          <button onClick={handleExportJSON} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95">
-            <FileJson className="h-3.5 w-3.5" />
-            JSON
           </button>
 
           <div className="mx-1.5 h-5 w-px bg-border" />

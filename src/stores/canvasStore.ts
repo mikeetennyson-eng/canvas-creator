@@ -83,6 +83,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       return { elements: sorted };
     }),
 
+
   getCanvasJSON: () => {
     const { elements, zoom, panX, panY } = get();
     return JSON.stringify({ elements, zoom, panX, panY, width: 1200, height: 800 }, null, 2);

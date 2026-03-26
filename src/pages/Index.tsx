@@ -36,7 +36,7 @@ export default function Index() {
     {
       icon: Download,
       title: 'Multiple Exports',
-      description: 'Export your work as PNG images or JSON files',
+      description: 'Export your work as PNG images',
     },
     {
       icon: Wind,
