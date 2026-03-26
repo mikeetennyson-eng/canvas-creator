@@ -80,7 +80,6 @@ export default function IconLibrary({ onUpgradeRequest }: IconLibraryProps) {
   const {
     searchQuery, setSearchQuery,
     selectedCategory, setSelectedCategory,
-    attributionFilter, setAttributionFilter,
     getFilteredIcons, getCategories, loading,
   } = useIconStore();
 
@@ -118,22 +117,6 @@ export default function IconLibrary({ onUpgradeRequest }: IconLibraryProps) {
       {/* Filters */}
       {showFilters && (
         <div className="space-y-2 border-b border-panel-border px-3 pb-2.5 animate-fade-in">
-          {/* Attribution filter */}
-          <div className="flex gap-1">
-            {(['all', 'free', 'attribution'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setAttributionFilter(f)}
-                className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
-                  attributionFilter === f
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                }`}
-              >
-                {f === 'all' ? 'All' : f === 'free' ? 'Free' : '© Required'}
-              </button>
-            ))}
-          </div>
         </div>
       )}
 

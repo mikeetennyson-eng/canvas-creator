@@ -4,7 +4,6 @@ export interface IconData {
   category: string;
   tags: string[];
   svg_url: string;
-  attribution_required: boolean;
   author: string;
   license: string;
   source_url: string;

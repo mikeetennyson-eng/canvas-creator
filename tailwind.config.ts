@@ -52,7 +52,6 @@ export default {
         toolbar: "hsl(var(--toolbar-bg))",
         "sidebar-bg": "hsl(var(--sidebar-bg))",
         "panel-border": "hsl(var(--panel-border))",
-        "attribution-badge": "hsl(var(--attribution-badge))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

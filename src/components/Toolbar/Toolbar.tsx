@@ -1,13 +1,12 @@
 import {
   MousePointer2, Square, Circle, Type, ArrowUpRight,
-  Download, ScrollText, ZoomIn, ZoomOut,
+  Download, ZoomIn, ZoomOut,
   Undo2, Redo2, Home, Save, Clock, Plus, Trash2,
 } from 'lucide-react';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { useIconStore } from '@/stores/iconStore';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AttributionModal from '@/components/AttributionModal/AttributionModal';
 import type { ToolType } from '@/types/editor';
 
 const tools: { id: ToolType; icon: typeof MousePointer2; label: string }[] = [
@@ -22,7 +21,6 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
   const navigate = useNavigate();
   const { activeTool, setActiveTool, zoom, setZoom, elements, selectedIds, setSelectedIds, removeSelected } = useCanvasStore();
   const usedIcons = useIconStore((s) => s.usedIcons);
-  const [showAttrModal, setShowAttrModal] = useState(false);
 
   const handleExportPNG = () => {
     const stageEl = document.querySelector('.konvajs-content canvas') as HTMLCanvasElement | null;
@@ -32,9 +30,6 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
     link.href = stageEl.toDataURL('image/png');
     link.click();
   };
-
-
-  const attributionRequired = usedIcons.filter((i) => i.attribution_required);
 
   return (
     <>
@@ -94,17 +89,6 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
 
         {/* Right: actions */}
         <div className="flex items-center gap-0.5">
-          {/* Attribution */}
-          <button
-            onClick={() => setShowAttrModal(true)}
-            className="relative flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary active:scale-95"
-          >
-            <ScrollText className="h-3.5 w-3.5" />
-            Attributions
-          </button>
-
-          <div className="mx-1.5 h-5 w-px bg-border" />
-
           <button onClick={handleExportPNG} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95">
             <Download className="h-3.5 w-3.5" />
             PNG
@@ -144,8 +128,6 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
 
         </div>
       </div>
-
-      <AttributionModal open={showAttrModal} onClose={() => setShowAttrModal(false)} />
     </>
   );
 }
