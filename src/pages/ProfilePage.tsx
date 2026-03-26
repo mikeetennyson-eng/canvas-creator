@@ -133,41 +133,36 @@ export default function ProfilePage() {
       {/* Main Content */}
       <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
-          {/* User Info & Subscription Section - Combined Layout */}
-          <div className="mb-12">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Welcome Card */}
-              <div className="lg:col-span-1 bg-card rounded-2xl border border-border p-6 shadow-lg">
-                <h1 className="text-2xl font-bold mb-2">Welcome back! 👋</h1>
-                <p className="text-sm text-muted-foreground mb-3">{user?.name}</p>
-                <p className="text-xs text-muted-foreground mb-1">{user?.email}</p>
-                <p className="text-xs text-muted-foreground">Member since {user && formatDate(new Date().toISOString())}</p>
-              </div>
+          {/* Welcome Greeting */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold">Welcome back, {user?.name}! 👋</h1>
+            <p className="text-muted-foreground mt-1">{user?.email}</p>
+          </div>
 
-              {/* Subscription Card */}
-              {subscription && (
-                <div className="lg:col-span-2">
-                  <div className={`rounded-2xl border p-6 shadow-lg h-full ${
+          {/* Subscription Card - Full Width */}
+          {subscription && (
+            <div className="mb-12">
+              <div className={`rounded-2xl border p-8 shadow-lg ${
                 subscription.plan === 'professional'
                   ? 'bg-gradient-to-br from-primary/5 to-accent/5 border-primary/30'
                   : 'bg-card border-border'
               }`}>
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-8">
                   <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${
+                      <div className={`p-3 rounded-lg ${
                         subscription.plan === 'professional'
                           ? 'bg-primary/20'
                           : 'bg-secondary'
                       }`}>
-                        <Crown className={`w-5 h-5 ${
+                        <Crown className={`w-6 h-6 ${
                           subscription.plan === 'professional'
                             ? 'text-primary'
                             : 'text-muted-foreground'
                         }`} />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold capitalize">{subscription.plan} Plan</h2>
-                        <p className="text-xs text-muted-foreground capitalize">Status: {subscription.status}</p>
+                        <h2 className="text-2xl font-bold capitalize">{subscription.plan} Plan</h2>
+                        <p className="text-sm text-muted-foreground capitalize">Status: {subscription.status}</p>
                     </div>
                   </div>
                   {subscription.daysRemaining !== null && subscription.daysRemaining < 7 && (
@@ -178,24 +173,24 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Price</p>
-                    <p className="text-xl font-bold">
+                    <p className="text-sm text-muted-foreground mb-1">Price</p>
+                    <p className="text-2xl font-bold">
                       {subscription.plan === 'professional' ? '₹400' : '₹0'}
-                      <span className="text-sm font-normal text-muted-foreground"> {subscription.plan === 'professional' ? '/month' : ''}</span>
+                      <span className="text-base font-normal text-muted-foreground"> {subscription.plan === 'professional' ? '/month' : ''}</span>
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Icons per Project</p>
-                    <p className="text-xl font-bold">
+                    <p className="text-sm text-muted-foreground mb-1">Icons per Project</p>
+                    <p className="text-2xl font-bold">
                       {subscription.plan === 'professional' ? 'Unlimited' : '20'}
                     </p>
                   </div>
                   {subscription.plan === 'professional' && (
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">Renewal Date</p>
-                      <p className="text-sm font-semibold">
+                      <p className="text-sm text-muted-foreground mb-1">Renewal Date</p>
+                      <p className="text-lg font-semibold">
                         {subscription.currentPeriodEnd
                           ? formatDate(subscription.currentPeriodEnd)
                           : 'N/A'}
@@ -205,39 +200,41 @@ export default function ProfilePage() {
                 </div>
 
                 {subscription.plan === 'professional' && (
-                  <div className="bg-background/50 rounded-lg p-3 mb-4 text-sm">
-                    <p className="font-semibold text-sm mb-1">Billing</p>
+                  <div className="bg-background/50 rounded-lg p-4 mb-6">
+                    <p className="font-semibold mb-2">Billing</p>
                     {subscription.autoRenewal ? (
                       <>
-                        <p className="text-xs text-muted-foreground">
-                          Recurring subscription; renews automatically each month.
+                        <p className="text-sm text-muted-foreground">
+                          This is a recurring subscription; it renews automatically each month.
                         </p>
-                        <p className="text-xs text-green-700 mt-1">
+                        <p className="text-sm text-green-700 mt-1">
                           Next renewal: {subscription.currentPeriodEnd ? formatDate(subscription.currentPeriodEnd) : 'N/A'}
                         </p>
                       </>
                     ) : (
                       <>
-                        <p className="text-xs text-muted-foreground">
-                          One-time payment expiring on:
+                        <p className="text-sm text-muted-foreground">
+                          This is a one-time payment. Your professional access expires on:
                         </p>
-                        <p className="text-xs text-yellow-700 mt-1">
+                        <p className="text-sm text-yellow-700 mt-1">
                           {subscription.currentPeriodEnd ? formatDate(subscription.currentPeriodEnd) : 'N/A'}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          After this date, you'll be downgraded to the free plan. To continue with unlimited icons, upgrade to auto-renewal on the pricing page.
                         </p>
                       </>
                     )}
                   </div>
                 )}
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex gap-3">
                   {subscription.plan === 'free' && (
                     <Button
                       onClick={() => navigate('/pricing')}
-                      className="flex-1 min-w-[150px] gap-2 text-sm"
-                      size="sm"
+                      className="flex-1 gap-2"
                     >
                       <Crown className="w-4 h-4" />
-                      Upgrade
+                      Upgrade to Professional
                     </Button>
                   )}
                   {subscription.plan === 'professional' && (
@@ -245,19 +242,17 @@ export default function ProfilePage() {
                       <Button
                         onClick={() => navigate('/pricing')}
                         variant="outline"
-                        size="sm"
-                        className="text-sm"
+                        className="flex-1"
                       >
-                        Manage
+                        Manage Subscription
                       </Button>
                       <Button
                         onClick={handleCancelSubscription}
                         variant="destructive"
                         size="sm"
                         disabled={autoRenewalLoading}
-                        className="text-sm"
                       >
-                        Cancel
+                        Cancel Subscription
                       </Button>
                     </>
                   )}
@@ -265,8 +260,6 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
-            </div>
-          </div>
 
           {/* Recent Canvases Section */}
           <div>
