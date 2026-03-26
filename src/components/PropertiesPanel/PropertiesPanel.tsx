@@ -118,18 +118,71 @@ export default function PropertiesPanel() {
             <legend className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               <Palette className="h-3 w-3" /> Color
             </legend>
-            <div className="flex items-center gap-2">
-              <input
-                type="color" value={selected.fill || '#3b82f6'}
-                onChange={(e) => update({ fill: e.target.value })}
-                className="h-8 w-8 cursor-pointer rounded border border-input"
-              />
-              <input
-                type="text" value={selected.fill || '#3b82f6'}
-                onChange={(e) => update({ fill: e.target.value })}
-                className="flex-1 rounded border border-input bg-background px-2 py-1 text-xs font-mono focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
+            {/* Shape fill options */}
+            {selected.type === 'shape' && (
+              <div className="flex gap-1.5 mb-2">
+                <button
+                  onClick={() => update({ fill: '#3b82f6' })}
+                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium border transition-colors ${
+                    selected.fill && selected.fill !== 'none' && selected.fill !== 'transparent'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-input bg-background text-muted-foreground hover:bg-secondary'
+                  }`}
+                >
+                  Fill
+                </button>
+                <button
+                  onClick={() => update({ fill: 'none' })}
+                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium border transition-colors ${
+                    selected.fill === 'none' || selected.fill === 'transparent'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-input bg-background text-muted-foreground hover:bg-secondary'
+                  }`}
+                >
+                  No Fill
+                </button>
+              </div>
+            )}
+            {/* Color picker - only show if fill is enabled */}
+            {selected.fill !== 'none' && selected.fill !== 'transparent' && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="color" value={selected.fill || '#3b82f6'}
+                  onChange={(e) => update({ fill: e.target.value })}
+                  className="h-8 w-8 cursor-pointer rounded border border-input"
+                />
+                <input
+                  type="text" value={selected.fill || '#3b82f6'}
+                  onChange={(e) => update({ fill: e.target.value })}
+                  className="flex-1 rounded border border-input bg-background px-2 py-1 text-xs font-mono focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+            )}
+            {/* Text color with auto dark mode option */}
+            {selected.type === 'text' && (
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => update({ fill: 'auto' })}
+                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium border transition-colors ${
+                    selected.fill === 'auto'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-input bg-background text-muted-foreground hover:bg-secondary'
+                  }`}
+                >
+                  Auto
+                </button>
+                <button
+                  onClick={() => update({ fill: '#1a1a1a' })}
+                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium border transition-colors ${
+                    selected.fill && selected.fill !== 'auto' && selected.fill !== 'none'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-input bg-background text-muted-foreground hover:bg-secondary'
+                  }`}
+                >
+                  Custom
+                </button>
+              </div>
+            )}
           </fieldset>
         )}
 

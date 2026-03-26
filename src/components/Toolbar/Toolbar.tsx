@@ -1,7 +1,7 @@
 import {
   MousePointer2, Square, Circle, Type, ArrowUpRight,
   Download, FileJson, ScrollText, ZoomIn, ZoomOut,
-  Undo2, Redo2, Sun, Moon, Home, Save, Clock,
+  Undo2, Redo2, Sun, Moon, Home, Save, Clock, Plus, Trash2,
 } from 'lucide-react';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { useIconStore } from '@/stores/iconStore';
@@ -16,11 +16,13 @@ const tools: { id: ToolType; icon: typeof MousePointer2; label: string }[] = [
   { id: 'circle', icon: Circle, label: 'Ellipse' },
   { id: 'text', icon: Type, label: 'Text' },
   { id: 'arrow', icon: ArrowUpRight, label: 'Arrow' },
-];
+]
+
+import { Plus, Trash2 } from 'lucide-react';
 
 export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isSaving?: boolean }) {
   const navigate = useNavigate();
-  const { activeTool, setActiveTool, zoom, setZoom, getCanvasJSON, elements } = useCanvasStore();
+  const { activeTool, setActiveTool, zoom, setZoom, getCanvasJSON, elements, selectedIds, setSelectedIds, removeSelected } = useCanvasStore();
   const usedIcons = useIconStore((s) => s.usedIcons);
   const [showAttrModal, setShowAttrModal] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -69,6 +71,28 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
               <t.icon className="h-4 w-4" />
             </button>
           ))}
+
+          <div className="mx-2 h-5 w-px bg-border" />
+
+          {/* Select All */}
+          <button
+            onClick={() => setSelectedIds(elements.map(e => e.id))}
+            className="rounded-md p-2 transition-all duration-150 active:scale-95 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            title="Select All"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+
+          {/* Delete Selected */}
+          {selectedIds.length > 0 && (
+            <button
+              onClick={() => removeSelected()}
+              className="rounded-md p-2 transition-all duration-150 active:scale-95 text-destructive hover:bg-destructive/10"
+              title={`Delete ${selectedIds.length} item${selectedIds.length > 1 ? 's' : ''}`}
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
 
           <div className="mx-2 h-5 w-px bg-border" />
 
