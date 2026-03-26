@@ -13,13 +13,15 @@ export async function checkExpiringSubscriptions() {
     const now = new Date();
     const reminderThreshold = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
 
-    // 1. Find expired professional subscriptions and downgrade to free
+    // 1. Find expired one-time professional subscriptions where auto-renewal was specifically enabled, and downgrade to free
+    // Note: With the fix, one-time payments have autoRenewal: false by default, so they won't match this query
+    // This query is for edge cases where a user might enable auto-renewal for a one-time payment
     const expiredSubscriptions = await Subscription.find({
       plan: 'professional',
       status: { $in: ['active', 'inactive'] },
       currentPeriodEnd: { $lt: now },
-      autoRenewal: true, // Only auto-renew if enabled
-      subscriptionId: { $exists: false }, // Only handle one-time orders (subscriptions handled by webhooks)
+      autoRenewal: true, // Only process if auto-renewal is explicitly enabled
+      subscriptionId: { $exists: false }, // One-time orders (not recurring Razorpay subscriptions)
     });
 
     console.log(`[Auto-Renewal] Found ${expiredSubscriptions.length} expired subscriptions`);

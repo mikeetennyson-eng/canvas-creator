@@ -687,7 +687,7 @@ export default async function handler(req: any, res: any): Promise<void> {
         return;
       }
 
-      // Verify payment
+      // Verify payment (ONE-TIME PAYMENT)
       if (path === '/api/subscription/verify-payment' && req.method === 'POST') {
         try {
           const body = await parseBody(req);
@@ -720,10 +720,11 @@ export default async function handler(req: any, res: any): Promise<void> {
           subscription.price = 40000;
           subscription.currentPeriodStart = now;
           subscription.currentPeriodEnd = periodEnd;
-          subscription.autoRenewal = true;
+          subscription.autoRenewal = false; // ONE-TIME PAYMENT - NO AUTO-RENEWAL
           subscription.paymentMethod = 'razorpay';
           subscription.transactionId = paymentId;
           subscription.orderId = orderId;
+          subscription.subscriptionId = undefined; // Clear any recurring subscription ID
           subscription.notificationSent = false;
 
           await subscription.save();
