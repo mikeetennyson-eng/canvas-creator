@@ -38,7 +38,6 @@ export interface SubscriptionInfo {
   status: 'active' | 'inactive' | 'cancelled' | 'expired';
   currentPeriodStart: string;
   currentPeriodEnd?: string;
-  autoRenewal: boolean;
   daysRemaining: number | null;
 }
 
@@ -204,13 +203,6 @@ class ApiClient {
     });
   }
 
-  async toggleAutoRenewal(autoRenewal: boolean): Promise<SubscriptionResponse> {
-    return this.request<SubscriptionResponse>('/subscription/toggle-renewal', {
-      method: 'POST',
-      body: JSON.stringify({ autoRenewal }),
-    });
-  }
-
   async cancelSubscription(): Promise<SubscriptionResponse> {
     return this.request<SubscriptionResponse>('/subscription/cancel', {
       method: 'POST',
@@ -226,10 +218,10 @@ class ApiClient {
     });
   }
 
-  async createRazorpaySubscription(autoRenewal: boolean = true): Promise<RazorpaySubscriptionResponse> {
+  async createRazorpaySubscription(): Promise<RazorpaySubscriptionResponse> {
     return this.request<RazorpaySubscriptionResponse>('/subscription/create-subscription', {
       method: 'POST',
-      body: JSON.stringify({ autoRenewal }),
+      body: JSON.stringify({}),
     });
   }
 

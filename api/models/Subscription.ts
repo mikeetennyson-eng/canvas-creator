@@ -10,14 +10,11 @@ export interface ISubscription extends Document {
   price: number; // in paise (400 Rs = 40000 paise for professional)
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
-  autoRenewal: boolean;
   paymentMethod?: string;
   transactionId?: string;
   orderId?: string; // Razorpay order ID (for one-time payments)
   subscriptionId?: string; // Razorpay subscription ID (for recurring)
   planId?: string; // Razorpay plan ID
-  nextRenewalDate?: Date; // Next auto-renewal date
-  notificationSent?: boolean; // Track if renewal reminder sent
   failedPaymentAttempts?: number; // Track failed renewal attempts
   lastPaymentError?: string; // Store last payment error
   createdAt: Date;
@@ -60,10 +57,6 @@ const subscriptionSchema = new Schema<ISubscription>(
         return this.plan === 'professional';
       },
     },
-    autoRenewal: {
-      type: Boolean,
-      default: false,
-    },
     paymentMethod: {
       type: String,
       trim: true,
@@ -85,13 +78,6 @@ const subscriptionSchema = new Schema<ISubscription>(
     planId: {
       type: String,
       trim: true,
-    },
-    nextRenewalDate: {
-      type: Date,
-    },
-    notificationSent: {
-      type: Boolean,
-      default: false,
     },
     failedPaymentAttempts: {
       type: Number,

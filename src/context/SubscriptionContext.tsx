@@ -7,7 +7,6 @@ export interface SubscriptionInfo {
   status: 'active' | 'inactive' | 'cancelled' | 'expired';
   currentPeriodStart: string;
   currentPeriodEnd?: string;
-  autoRenewal: boolean;
   daysRemaining: number | null;
 }
 
@@ -18,7 +17,6 @@ interface SubscriptionContextType {
   refreshSubscription: () => Promise<void>;
   upgradeSubscription: (paymentMethod: string, transactionId: string) => Promise<void>;
   downgradeSubscription: () => Promise<void>;
-  toggleAutoRenewal: (enabled: boolean) => Promise<void>;
   cancelSubscription: () => Promise<void>;
   isFreeUser: () => boolean;
   isProfessionalUser: () => boolean;
@@ -90,18 +88,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const toggleAutoRenewal = async (enabled: boolean) => {
-    try {
-      setError(null);
-      const response = await apiClient.toggleAutoRenewal(enabled);
-      setSubscription(response.subscription);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to toggle auto-renewal';
-      setError(errorMessage);
-      throw err;
-    }
-  };
-
   const cancelSubscription = async () => {
     try {
       setIsLoading(true);
@@ -130,7 +116,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         refreshSubscription,
         upgradeSubscription,
         downgradeSubscription,
-        toggleAutoRenewal,
         cancelSubscription,
         isFreeUser,
         isProfessionalUser,

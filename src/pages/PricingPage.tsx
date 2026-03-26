@@ -139,7 +139,7 @@ export default function PricingPage() {
 
       // Step 1: Create Razorpay subscription
       console.log('[Upgrade] Creating recurring subscription...');
-      const subscriptionResponse = await apiClient.createRazorpaySubscription(true);
+      const subscriptionResponse = await apiClient.createRazorpaySubscription();
       const subscriptionId = subscriptionResponse.subscription.subscriptionId;
       const subscriptionShortUrl = subscriptionResponse.subscription.paymentLink;
       console.log('[Upgrade] Subscription created:', subscriptionId);
@@ -514,9 +514,7 @@ export default function PricingPage() {
                 Your subscription expires in {subscription.daysRemaining} days
               </p>
               <p className="text-sm text-blue-800">
-                {subscription.autoRenewal 
-                  ? '✓ Auto-renewal is enabled. Your subscription will automatically renew on the expiry date.'
-                  : 'Auto-renewal is disabled. You will need to renew your subscription manually.'}
+                You will need to renew your subscription manually when it expires.
               </p>
             </div>
           </div>
@@ -527,27 +525,25 @@ export default function PricingPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-8">Frequently Asked Questions</h2>
           <div className="space-y-6">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-2">What's the difference between Auto-Renewing and One-Time payment?</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">What's included in the Professional plan?</h3>
               <p className="text-gray-600">
-                <strong>Auto-Renewing:</strong> Your subscription automatically renews every 30 days. You'll receive a reminder 3 days before renewal and can cancel anytime.
-                <br/>
-                <strong>One-Time:</strong> A single 30-day subscription for ₹400. After 30 days, you can purchase again if needed.
+                Unlimited icons, priority support, and all premium features for 30 days. You can renew your subscription when it expires.
               </p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Can I cancel my subscription anytime?</h3>
               <p className="text-gray-600">
-                Yes, you can cancel your auto-renewing subscription at any time from your profile. You'll have access to all professional features until the end of your current billing period. For one-time payments, you can reach out to support for a refund within 7 days of purchase.
+                Yes, you can cancel your subscription at any time from your profile. You'll have access to all professional features until the end of your current billing period.
               </p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">What happens when my subscription expires?</h3>
               <p className="text-gray-600">
-                If auto-renewal is enabled, your subscription will automatically renew on the expiry date and you'll be charged ₹400. If not enabled or if the payment fails, your account will automatically downgrade to the free plan. You can export your diagrams before the downgrade takes effect.
+                When your subscription expires, your account will automatically downgrade to the free plan with a 20-icon limit. You can export your diagrams before the downgrade takes effect.
               </p>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-2">What if my auto-renewal payment fails?</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">What if my payment fails?</h3>
               <p className="text-gray-600">
                 Razorpay will attempt to retry the payment up to 2 more times. If all attempts fail, your subscription will be halted and your account will downgrade to the free plan. You can update your payment method and try again from your profile.
               </p>

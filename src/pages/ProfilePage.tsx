@@ -24,7 +24,6 @@ export default function ProfilePage() {
   const [canvases, setCanvases] = useState<Canvas[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [autoRenewalLoading, setAutoRenewalLoading] = useState(false);
 
   useEffect(() => {
     fetchUserCanvases();
@@ -63,7 +62,6 @@ export default function ProfilePage() {
     }
 
     try {
-      setAutoRenewalLoading(true);
       await apiClient.cancelSubscription();
       await refreshSubscription();
       
@@ -79,8 +77,6 @@ export default function ProfilePage() {
         description: errorMessage,
         variant: 'destructive',
       });
-    } finally {
-      setAutoRenewalLoading(false);
     }
   };
 
@@ -202,28 +198,15 @@ export default function ProfilePage() {
                 {subscription.plan === 'professional' && (
                   <div className="bg-background/50 rounded-lg p-4 mb-6">
                     <p className="font-semibold mb-2">Billing</p>
-                    {subscription.autoRenewal ? (
-                      <>
-                        <p className="text-sm text-muted-foreground">
-                          This is a recurring subscription; it renews automatically each month.
-                        </p>
-                        <p className="text-sm text-green-700 mt-1">
-                          Next renewal: {subscription.currentPeriodEnd ? formatDate(subscription.currentPeriodEnd) : 'N/A'}
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-sm text-muted-foreground">
-                          This is a one-time payment. Your professional access expires on:
-                        </p>
-                        <p className="text-sm text-yellow-700 mt-1">
-                          {subscription.currentPeriodEnd ? formatDate(subscription.currentPeriodEnd) : 'N/A'}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          After this date, you'll be downgraded to the free plan. To continue with unlimited icons, upgrade to auto-renewal on the pricing page.
-                        </p>
-                      </>
-                    )}
+                    <p className="text-sm text-muted-foreground">
+                      Your professional access expires on:
+                    </p>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      {subscription.currentPeriodEnd ? formatDate(subscription.currentPeriodEnd) : 'N/A'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      After this date, you'll be downgraded to the free plan. To continue with unlimited icons, renew your subscription on the pricing page.
+                    </p>
                   </div>
                 )}
 
@@ -250,7 +233,6 @@ export default function ProfilePage() {
                         onClick={handleCancelSubscription}
                         variant="destructive"
                         size="sm"
-                        disabled={autoRenewalLoading}
                       >
                         Cancel Subscription
                       </Button>

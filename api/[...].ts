@@ -16,7 +16,6 @@ import {
   getSubscriptionDetails,
 } from './config/razorpay.js';
 import { handleRazorpayWebhook } from './webhooks/razorpay.js';
-import { checkExpiringSubscriptions } from './services/autoRenewal.js';
 
 // Helper to get header from Node.js or Web API request objects
 function getHeader(headers: any, name: string): string | undefined {
@@ -107,7 +106,6 @@ export default async function handler(req: any, res: any): Promise<void> {
             price: 0,
             currentPeriodStart: now,
             currentPeriodEnd: periodEnd,
-            autoRenewal: false,
           });
 
           const token = generateToken({ id: user._id.toString(), email: user.email });
@@ -340,34 +338,6 @@ export default async function handler(req: any, res: any): Promise<void> {
         return;
       }
 
-      // Check expiry (protected)
-      if (path === '/api/subscription/check-expiry' && req.method === 'POST') {
-        try {
-          const authHeader = getHeader(req.headers, 'authorization');
-          const tokenPart = authHeader?.split(' ')[1];
-          const secret = process.env.CRON_SECRET;
-
-          if (tokenPart) {
-            try {
-              verifyJWT(tokenPart);
-            } catch {
-              res.status(401).json({ message: 'Invalid token' });
-              return;
-            }
-          } else if (secret && tokenPart !== secret) {
-            res.status(401).json({ message: 'Unauthorized' });
-            return;
-          }
-
-          const result = await checkExpiringSubscriptions();
-          res.status(result.success ? 200 : 500).json(result);
-        } catch (error) {
-          console.error('Check expiry error:', error);
-          res.status(500).json({ message: 'Check failed' });
-        }
-        return;
-      }
-
       // All other subscription routes require auth
       const authHeader = getHeader(req.headers, 'authorization');
       const token = authHeader?.split(' ')[1];
@@ -401,7 +371,6 @@ export default async function handler(req: any, res: any): Promise<void> {
               price: 0,
               currentPeriodStart: now,
               currentPeriodEnd: periodEnd,
-              autoRenewal: false,
             });
           }
 
@@ -417,7 +386,6 @@ export default async function handler(req: any, res: any): Promise<void> {
               status: subscription.status,
               currentPeriodStart: subscription.currentPeriodStart,
               currentPeriodEnd: subscription.currentPeriodEnd,
-              autoRenewal: subscription.autoRenewal,
               daysRemaining:
                 subscription.plan === 'professional'
                   ? Math.ceil((subscription.currentPeriodEnd!.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
@@ -457,10 +425,8 @@ export default async function handler(req: any, res: any): Promise<void> {
           subscription.price = 40000;
           subscription.currentPeriodStart = now;
           subscription.currentPeriodEnd = periodEnd;
-          subscription.autoRenewal = true;
           subscription.paymentMethod = paymentMethod || 'credit_card';
           subscription.transactionId = transactionId;
-          subscription.notificationSent = false;
 
           await subscription.save();
 
@@ -470,7 +436,6 @@ export default async function handler(req: any, res: any): Promise<void> {
               plan: subscription.plan,
               status: subscription.status,
               currentPeriodEnd: subscription.currentPeriodEnd,
-              autoRenewal: subscription.autoRenewal,
             },
           });
         } catch (error) {
@@ -498,9 +463,7 @@ export default async function handler(req: any, res: any): Promise<void> {
           subscription.price = 0;
           subscription.currentPeriodStart = now;
           subscription.currentPeriodEnd = periodEnd;
-          subscription.autoRenewal = false;
           subscription.transactionId = undefined;
-          subscription.notificationSent = false;
 
           await subscription.save();
 
@@ -511,53 +474,6 @@ export default async function handler(req: any, res: any): Promise<void> {
         } catch (error) {
           console.error('Downgrade subscription error:', error);
           res.status(500).json({ message: 'Failed to downgrade subscription' });
-        }
-        return;
-      }
-
-      // Toggle auto-renewal
-      if (path === '/api/subscription/toggle-renewal' && req.method === 'POST') {
-        try {
-          const body = await parseBody(req);
-          const { autoRenewal } = body;
-
-          if (typeof autoRenewal !== 'boolean') {
-            res.status(400).json({ message: 'autoRenewal must be boolean' });
-            return;
-          }
-
-          let subscription = await Subscription.findOne({ userId });
-
-          if (!subscription) {
-            res.status(404).json({ message: 'Subscription not found' });
-            return;
-          }
-
-          subscription.autoRenewal = autoRenewal;
-          await subscription.save();
-
-          if (subscription.plan === 'professional' && new Date() > subscription.currentPeriodEnd!) {
-            subscription.status = 'expired';
-            await subscription.save();
-          }
-
-          res.status(200).json({
-            message: `Auto-renewal ${autoRenewal ? 'enabled' : 'disabled'}`,
-            subscription: {
-              plan: subscription.plan,
-              status: subscription.status,
-              currentPeriodStart: subscription.currentPeriodStart,
-              currentPeriodEnd: subscription.currentPeriodEnd,
-              autoRenewal: subscription.autoRenewal,
-              daysRemaining:
-                subscription.plan === 'professional'
-                  ? Math.ceil((subscription.currentPeriodEnd!.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-                  : null,
-            },
-          });
-        } catch (error) {
-          console.error('Toggle renewal error:', error);
-          res.status(500).json({ message: 'Failed to toggle renewal' });
         }
         return;
       }
@@ -585,9 +501,7 @@ export default async function handler(req: any, res: any): Promise<void> {
           subscription.price = 0;
           subscription.currentPeriodStart = now;
           subscription.currentPeriodEnd = periodEnd;
-          subscription.autoRenewal = false;
           subscription.transactionId = undefined;
-          subscription.notificationSent = false;
 
           await subscription.save();
 
@@ -598,7 +512,6 @@ export default async function handler(req: any, res: any): Promise<void> {
               status: subscription.status,
               currentPeriodStart: subscription.currentPeriodStart,
               currentPeriodEnd: subscription.currentPeriodEnd,
-              autoRenewal: subscription.autoRenewal,
               daysRemaining: null,
             },
           });
@@ -629,7 +542,6 @@ export default async function handler(req: any, res: any): Promise<void> {
       if (path === '/api/subscription/create-subscription' && req.method === 'POST') {
         try {
           const body = await parseBody(req);
-          const { autoRenewal } = body;
 
           console.log('[API] Creating recurring subscription for user:', userId);
 
@@ -657,7 +569,6 @@ export default async function handler(req: any, res: any): Promise<void> {
 
           userSubscription.subscriptionId = subscription.id;
           userSubscription.planId = planId;
-          userSubscription.autoRenewal = autoRenewal !== false;
           const validStatuses = ['active', 'inactive', 'cancelled', 'expired'];
           if (validStatuses.includes(subscription.status)) {
             userSubscription.status = subscription.status as any;
@@ -720,12 +631,10 @@ export default async function handler(req: any, res: any): Promise<void> {
           subscription.price = 40000;
           subscription.currentPeriodStart = now;
           subscription.currentPeriodEnd = periodEnd;
-          subscription.autoRenewal = false; // ONE-TIME PAYMENT - NO AUTO-RENEWAL
           subscription.paymentMethod = 'razorpay';
           subscription.transactionId = paymentId;
           subscription.orderId = orderId;
           subscription.subscriptionId = undefined; // Clear any recurring subscription ID
-          subscription.notificationSent = false;
 
           await subscription.save();
 
@@ -736,7 +645,6 @@ export default async function handler(req: any, res: any): Promise<void> {
               status: subscription.status,
               currentPeriodStart: subscription.currentPeriodStart,
               currentPeriodEnd: subscription.currentPeriodEnd,
-              autoRenewal: subscription.autoRenewal,
               daysRemaining: Math.ceil((periodEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)),
             },
           });
@@ -797,10 +705,8 @@ export default async function handler(req: any, res: any): Promise<void> {
             subscription.price = 40000;
             subscription.currentPeriodStart = now;
             subscription.currentPeriodEnd = periodEnd;
-            subscription.autoRenewal = true;
             subscription.paymentMethod = 'razorpay';
             subscription.subscriptionId = subscriptionId;
-            subscription.notificationSent = false;
 
             await subscription.save();
 
@@ -813,7 +719,6 @@ export default async function handler(req: any, res: any): Promise<void> {
                 status: subscription.status,
                 currentPeriodStart: subscription.currentPeriodStart,
                 currentPeriodEnd: subscription.currentPeriodEnd,
-                autoRenewal: subscription.autoRenewal,
                 daysRemaining: Math.ceil((periodEnd.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)),
               },
               razorpayStatus: razorpaySubscription.status,

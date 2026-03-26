@@ -133,24 +133,16 @@ async function handleSubscriptionPaymentFailed(event: any) {
     if (sub) {
       const failedAttempts = (sub.failedPaymentAttempts || 0) + 1;
 
-      // Disable auto-renewal after 3 failed attempts
-      const shouldDisableAutoRenewal = failedAttempts >= 3;
-
       await Subscription.findOneAndUpdate(
         { userId: customerId },
         {
           failedPaymentAttempts: failedAttempts,
           lastPaymentError: failureReason,
-          autoRenewal: shouldDisableAutoRenewal ? false : sub.autoRenewal,
-          status: shouldDisableAutoRenewal ? 'inactive' : 'active',
+          status: 'inactive', // Mark as inactive on payment failure
         }
       );
 
-      console.log(
-        `[Webhook] Payment attempt ${failedAttempts} failed for user ${customerId}. Auto-renewal ${
-          shouldDisableAutoRenewal ? 'disabled' : 'still enabled'
-        }`
-      );
+      console.log(`[Webhook] Payment attempt ${failedAttempts} failed for user ${customerId}`);
     }
 
     return {
@@ -175,7 +167,6 @@ async function handleSubscriptionHalted(event: any) {
       { userId: customerId },
       {
         status: 'inactive',
-        autoRenewal: false,
       }
     );
 
@@ -209,7 +200,6 @@ async function handleSubscriptionCancelled(event: any) {
         price: 0,
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
-        autoRenewal: false,
         subscriptionId: undefined,
         failedPaymentAttempts: 0,
       }
@@ -246,7 +236,6 @@ async function handleSubscriptionExpired(event: any) {
         price: 0,
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
-        autoRenewal: false,
         subscriptionId: undefined,
       }
     );
