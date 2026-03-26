@@ -23,14 +23,6 @@ export interface CanvasElement {
   // Icon-specific
   iconData?: IconData;
   svg_url?: string;
-  // Crop-specific (for any element)
-  cropMode?: boolean;
-  cropBox?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
   // Text-specific
   text?: string;
   fontSize?: number;
