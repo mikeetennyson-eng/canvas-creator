@@ -12,11 +12,8 @@ export interface ISubscription extends Document {
   currentPeriodEnd: Date;
   paymentMethod?: string;
   transactionId?: string;
-  orderId?: string; // Razorpay order ID (for one-time payments)
-  subscriptionId?: string; // Razorpay subscription ID (for recurring)
-  planId?: string; // Razorpay plan ID
-  failedPaymentAttempts?: number; // Track failed renewal attempts
-  lastPaymentError?: string; // Store last payment error
+  failedPaymentAttempts?: number;
+  lastPaymentError?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -62,20 +59,6 @@ const subscriptionSchema = new Schema<ISubscription>(
       trim: true,
     },
     transactionId: {
-      type: String,
-      trim: true,
-    },
-    orderId: {
-      type: String,
-      trim: true,
-    },
-    subscriptionId: {
-      type: String,
-      trim: true,
-      unique: true,
-      sparse: true, // Allow multiple null values
-    },
-    planId: {
       type: String,
       trim: true,
     },

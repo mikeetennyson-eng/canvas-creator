@@ -46,30 +46,6 @@ export interface SubscriptionResponse {
   subscription: SubscriptionInfo;
 }
 
-export interface RazorpayOrder {
-  orderId: string;
-  amount: number;
-  currency: string;
-}
-
-export interface RazorpayOrderResponse {
-  message: string;
-  order: RazorpayOrder;
-}
-
-export interface RazorpaySubscription {
-  subscriptionId: string;
-  planId: string;
-  status: string;
-  paymentLink: string;
-  shortUrl: string;
-}
-
-export interface RazorpaySubscriptionResponse {
-  message: string;
-  subscription: RazorpaySubscription;
-}
-
 class ApiClient {
   private baseURL: string;
 
@@ -189,10 +165,10 @@ class ApiClient {
     });
   }
 
-  async upgradeSubscription(paymentMethod: string, transactionId: string): Promise<SubscriptionResponse> {
+  async upgradeSubscription(): Promise<SubscriptionResponse> {
     return this.request<SubscriptionResponse>('/subscription/upgrade', {
       method: 'POST',
-      body: JSON.stringify({ paymentMethod, transactionId }),
+      body: JSON.stringify({}),
     });
   }
 
@@ -207,43 +183,6 @@ class ApiClient {
     return this.request<SubscriptionResponse>('/subscription/cancel', {
       method: 'POST',
       body: JSON.stringify({}),
-    });
-  }
-
-  // Razorpay endpoints
-  async createRazorpayOrder(): Promise<RazorpayOrderResponse> {
-    return this.request<RazorpayOrderResponse>('/subscription/create-order', {
-      method: 'POST',
-      body: JSON.stringify({}),
-    });
-  }
-
-  async createRazorpaySubscription(): Promise<RazorpaySubscriptionResponse> {
-    return this.request<RazorpaySubscriptionResponse>('/subscription/create-subscription', {
-      method: 'POST',
-      body: JSON.stringify({}),
-    });
-  }
-
-  async verifyRazorpayPayment(
-    orderId: string,
-    paymentId: string,
-    signature: string
-  ): Promise<SubscriptionResponse> {
-    return this.request<SubscriptionResponse>('/subscription/verify-payment', {
-      method: 'POST',
-      body: JSON.stringify({ orderId, paymentId, signature }),
-    });
-  }
-
-  async verifyRecurringSubscription(
-    subscriptionId: string,
-    paymentId?: string,
-    signature?: string
-  ): Promise<SubscriptionResponse> {
-    return this.request<SubscriptionResponse>('/subscription/verify-subscription', {
-      method: 'POST',
-      body: JSON.stringify({ subscriptionId, paymentId, signature }),
     });
   }
 

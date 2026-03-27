@@ -67,7 +67,6 @@
     "vaul": "^0.9.9",
     "zod": "^3.25.76",
     "zustand": "^5.0.12",
-    "razorpay": "^2.9.2",
     "vite": "^5.4.19",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "typescript": "^5.8.3",

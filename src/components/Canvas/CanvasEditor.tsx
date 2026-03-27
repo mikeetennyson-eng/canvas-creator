@@ -229,13 +229,6 @@ export default function CanvasEditor() {
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (e.target === e.target.getStage()) {
       if (activeTool === 'select') {
-        // Before clearing selection, exit crop mode if any selected element is in crop mode
-        for (const id of selectedIds) {
-          const element = elements.find(el => el.id === id);
-          if (element?.cropMode) {
-            updateElement(id, { cropMode: false });
-          }
-        }
         clearSelection();
         return;
       }
@@ -337,37 +330,6 @@ export default function CanvasEditor() {
         </Layer>
       </Stage>
 
-      {/* Crop buttons - show when in crop mode */}
-      {selectedIds.length === 1 && elements.find(el => el.id === selectedIds[0])?.cropMode && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-50">
-          <button
-            onClick={() => {
-              const selected = elements.find(el => el.id === selectedIds[0]);
-              if (selected) {
-                updateElement(selected.id, { cropMode: false });
-              }
-            }}
-            className="px-3 py-1.5 rounded bg-card border border-panel-border text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              const selected = elements.find(el => el.id === selectedIds[0]);
-              if (selected?.type === 'icon') {
-                // Apply crop by exiting crop mode
-                // The cropBox has been saved during dragging in handleCropMouseMove
-                updateElement(selected.id, {
-                  cropMode: false,
-                });
-              }
-            }}
-            className="px-3 py-1.5 rounded bg-primary text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            Apply Crop
-          </button>
-        </div>
-      )}
 
       {/* Status bar */}
       <div className="absolute bottom-2 left-2 flex items-center gap-3 rounded-md bg-card/90 px-2.5 py-1 text-[10px] text-muted-foreground backdrop-blur-sm border border-panel-border">

@@ -15,7 +15,7 @@ interface SubscriptionContextType {
   isLoading: boolean;
   error: string | null;
   refreshSubscription: () => Promise<void>;
-  upgradeSubscription: (paymentMethod: string, transactionId: string) => Promise<void>;
+  upgradeSubscription: () => Promise<void>;
   downgradeSubscription: () => Promise<void>;
   cancelSubscription: () => Promise<void>;
   isFreeUser: () => boolean;
@@ -58,11 +58,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const upgradeSubscription = async (paymentMethod: string, transactionId: string) => {
+  const upgradeSubscription = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await apiClient.upgradeSubscription(paymentMethod, transactionId);
+      const response = await apiClient.upgradeSubscription();
       setSubscription(response.subscription);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to upgrade subscription';
