@@ -656,9 +656,20 @@ export default async function handler(req: any, res: any): Promise<void> {
 
           console.log('[API] Creating recurring subscription for user:', userId);
 
-          const PROFESSIONAL_PLAN_ID = process.env.RAZORPAY_PROFESSIONAL_PLAN_ID || null;
+          const rawPlanId = process.env.RAZORPAY_PROFESSIONAL_PLAN_ID || null;
+          let planId = rawPlanId
+            ? rawPlanId.trim().replace(/^['\"]|['\"]$/g, '')
+            : null;
 
-          let planId = PROFESSIONAL_PLAN_ID;
+          if (planId && !/^plan_[A-Za-z0-9]{14}$/.test(planId)) {
+            console.error('[API] Invalid RAZORPAY_PROFESSIONAL_PLAN_ID format', {
+              length: planId.length,
+            });
+            res.status(500).json({
+              message: 'Invalid RAZORPAY_PROFESSIONAL_PLAN_ID format in environment variables',
+            });
+            return;
+          }
 
           if (!planId) {
             console.log('[API] Creating new Razorpay plan...');
