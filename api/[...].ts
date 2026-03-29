@@ -55,6 +55,29 @@ async function parseBody(req: any): Promise<any> {
 // Main handler
 export default async function handler(req: any, res: any): Promise<void> {
   try {
+    // ============ CORS HANDLING ============
+    const clientUrls = process.env.CLIENT_URLS || process.env.CLIENT_URL || 'http://localhost:8080';
+    const allowedOrigins = clientUrls.split(',').map((url) => url.trim());
+    const origin = getHeader(req.headers, 'origin') || '';
+
+    // Add CORS headers
+    if (!origin) {
+      // Non-browser request, allow it
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    } else if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+      res.status(200).end();
+      return;
+    }
+
     await connectDB();
 
     const host = getHeader(req.headers, 'host') || req.headers['host'] || 'localhost';
