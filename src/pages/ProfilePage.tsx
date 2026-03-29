@@ -105,7 +105,7 @@ export default function ProfilePage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg">Canvas Creator</span>
+            <span className="font-bold text-lg">Demiqra</span>
           </div>
           <div className="flex items-center gap-3">
             <Button

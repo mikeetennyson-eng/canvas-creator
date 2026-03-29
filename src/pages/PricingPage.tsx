@@ -159,7 +159,7 @@ export default function PricingPage() {
       const options = {
         key: razorpayKey,
         subscription_id: subscriptionId,
-        name: 'Canvas Creator',
+        name: 'Demiqra',
         description: 'Professional Plan - Auto-Renewing',
         handler: async (response: any) => {
           console.log('[Upgrade] Recurring payment handler response:', response);
@@ -249,7 +249,7 @@ export default function PricingPage() {
         key: razorpayKey,
         amount: orderResponse.order.amount,
         currency: orderResponse.order.currency,
-        name: 'Canvas Creator',
+        name: 'Demiqra',
         description: 'Professional Plan - One-Time Payment',
         order_id: orderId,
         handler: async (response: any) => {

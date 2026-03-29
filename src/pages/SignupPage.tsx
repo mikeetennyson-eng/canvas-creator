@@ -106,7 +106,7 @@ export default function SignupPage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg">Canvas Creator</span>
+            <span className="font-bold text-lg">Demiqra</span>
           </Link>
           <Link to="/">
             <Button variant="ghost">Back Home</Button>
@@ -126,7 +126,7 @@ export default function SignupPage() {
             {/* Header */}
             <div className="mb-8 text-center">
               <h1 className="text-3xl font-bold mb-2">Create Account</h1>
-              <p className="text-muted-foreground">Join Canvas Creator and start creating amazing designs</p>
+              <p className="text-muted-foreground">Join Demiqra and start creating amazing designs</p>
             </div>
 
             {/* Error Alert */}

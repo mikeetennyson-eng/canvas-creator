@@ -59,7 +59,7 @@ export default function Index() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg">Canvas Creator</span>
+            <span className="font-bold text-lg">Demiqra</span>
           </div>
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
@@ -210,7 +210,7 @@ export default function Index() {
             size="lg"
             className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
           >
-            Launch Canvas Creator <ArrowRight className="w-5 h-5" />
+            Launch Demiqra <ArrowRight className="w-5 h-5" />
           </Button>
         </div>
       </section>
@@ -218,7 +218,7 @@ export default function Index() {
       {/* Footer */}
       <footer className="border-t border-border bg-card/50 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center text-sm text-muted-foreground">
-          <p>© 2026 Canvas Creator. Built with ❤️ for creative minds.</p>
+          <p>© 2026 Demiqra. Built with ❤️ for creative minds.</p>
         </div>
       </footer>
     </div>

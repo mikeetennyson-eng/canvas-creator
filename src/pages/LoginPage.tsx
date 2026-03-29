@@ -56,7 +56,7 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg">Canvas Creator</span>
+            <span className="font-bold text-lg">Demiqra</span>
           </Link>
           {isAuthenticated ? (
             <>
@@ -96,7 +96,7 @@ export default function LoginPage() {
             {/* Header */}
             <div className="mb-8 text-center">
               <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
-              <p className="text-muted-foreground">Sign in to your Canvas Creator account</p>
+              <p className="text-muted-foreground">Sign in to your Demiqra account</p>
             </div>
 
             {/* Error Alert */}
