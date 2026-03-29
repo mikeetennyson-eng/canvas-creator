@@ -9,7 +9,8 @@ import {
   ArrowRight,
   Grid3x3,
   Layers,
-  Wind
+  Wind,
+  Sparkles
 } from 'lucide-react';
 
 export default function Index() {
