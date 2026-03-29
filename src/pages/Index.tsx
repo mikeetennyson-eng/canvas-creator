@@ -5,7 +5,7 @@ import {
   Zap, 
   Palette, 
   Download, 
-  Share2,
+  Share2, 
   ArrowRight,
   Grid3x3,
   Layers,
@@ -55,9 +55,7 @@ export default function Index() {
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg overflow-hidden bg-background flex items-center justify-center">
-              <img src="/logo.png" alt="Demiqra logo" className="w-full h-full object-cover" />
-            </div>
+            <img src="/logo.png" alt="Demiqra" className="w-8 h-8 rounded-lg object-contain" />
             <span className="font-bold text-lg">Demiqra</span>
           </div>
           <div className="flex items-center gap-3">

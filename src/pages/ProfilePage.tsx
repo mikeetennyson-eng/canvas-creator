@@ -5,7 +5,7 @@ import { useSubscription } from '@/context/SubscriptionContext';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
-import { Sparkles, ArrowRight, Calendar, Trash2, Edit2, ExternalLink, Crown, AlertCircle, RefreshCw } from 'lucide-react';
+import { ArrowRight, Calendar, Trash2, Edit2, ExternalLink, Crown, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface Canvas {
   _id: string;
@@ -102,9 +102,7 @@ export default function ProfilePage() {
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer hover:opacity-80" onClick={() => navigate('/')}>
-            <div className="w-9 h-9 rounded-lg overflow-hidden bg-background flex items-center justify-center">
-              <img src="/logo.png" alt="Demiqra logo" className="w-full h-full object-cover" />
-            </div>
+            <img src="/logo.png" alt="Demiqra" className="w-8 h-8 rounded-lg object-contain" />
             <span className="font-bold text-lg">Demiqra</span>
           </div>
           <div className="flex items-center gap-3">
