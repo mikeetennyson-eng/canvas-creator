@@ -152,14 +152,18 @@ export default function Index() {
 
           {/* Preview card */}
           <div className="relative rounded-2xl overflow-hidden border border-border bg-card shadow-2xl">
-            <div className="aspect-video bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center relative">
-              <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-              <div className="relative z-10 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                  <Grid3x3 className="w-8 h-8 text-primary" />
-                </div>
-                <p className="text-sm text-muted-foreground">Your canvas awaits</p>
-              </div>
+            <div className="aspect-video relative bg-gradient-to-br from-primary/5 to-accent/5">
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                className="h-full w-full object-contain bg-gradient-to-br from-primary/5 to-accent/5"
+              >
+                <source src="/video1.webm" type="video/webm" />
+                Your browser does not support the video tag.
+              </video>
             </div>
           </div>
         </div>
