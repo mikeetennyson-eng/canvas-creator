@@ -10,13 +10,24 @@ dotenv.config();
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:8080';
+const CLIENT_URLS = process.env.CLIENT_URLS || CLIENT_URL;
+const allowedOrigins = CLIENT_URLS.split(',').map((url) => url.trim());
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin) {
+        // Allow non-browser requests (e.g. curl, server-to-server)
+        return callback(null, true);
+      }
+      if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS policy error: origin ${origin} is not allowed`));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -48,7 +59,7 @@ const startServer = async () => {
     // Start Express server
     app.listen(PORT, () => {
       console.log(`\n🚀 Server is running on http://localhost:${PORT}`);
-      console.log(`📡 CORS enabled for: ${CLIENT_URL}`);
+      console.log(`📡 CORS enabled for: ${allowedOrigins.join(', ')}`);
       console.log(`✨ MongoDB connected and ready to accept requests\n`);
     });
   } catch (error) {
