@@ -15,7 +15,7 @@ interface AuthContextType {
   isInitializing: boolean;
   error: string | null;
   signup: (name: string, email: string, password: string, confirmPassword: string) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, forceLogoutPrevious?: boolean) => Promise<void>;
   logout: () => void;
   clearError: () => void;
   verifyToken: () => Promise<boolean>;
@@ -92,11 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, forceLogoutPrevious = false) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await apiClient.login({ email, password });
+      const response = await apiClient.login({ email, password, forceLogoutPrevious });
       setToken(response.token);
       setUser(response.user);
     } catch (err) {
@@ -109,6 +109,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    apiClient.logoutSession().catch(() => {
+      // Ignore backend logout errors on client-side logout fallback.
+    });
     apiClient.logout();
     setToken(null);
     setUser(null);

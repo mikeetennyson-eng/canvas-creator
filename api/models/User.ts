@@ -8,6 +8,9 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  activeSessionId?: string;
+  previousSessionId?: string;
+  takeoverRequestedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(enteredPassword: string): Promise<boolean>;
@@ -40,6 +43,18 @@ const userSchema = new Schema<IUser>(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
         'Password must contain at least one uppercase letter, one lowercase letter, and one number',
       ],
+    },
+    activeSessionId: {
+      type: String,
+      default: null,
+    },
+    previousSessionId: {
+      type: String,
+      default: null,
+    },
+    takeoverRequestedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true }

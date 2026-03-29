@@ -24,12 +24,13 @@ export default function EditorPage() {
   const resetCanvas = useCanvasStore((s) => s.resetCanvas);
   const loadCanvasJSON = useCanvasStore((s) => s.loadCanvasJSON);
   const getCanvasJSON = useCanvasStore((s) => s.getCanvasJSON);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const canvasId = searchParams.get('load');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingCanvas, setIsLoadingCanvas] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isHandlingTakeover, setIsHandlingTakeover] = useState(false);
 
   // Handle canvas loading or creating new
   useEffect(() => {
@@ -65,6 +66,24 @@ export default function EditorPage() {
 
     return () => clearInterval(autoSaveInterval);
   }, [isAuthenticated]);
+
+  // Poll for remote session takeover requests.
+  useEffect(() => {
+    if (!isAuthenticated || isHandlingTakeover) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const status = await apiClient.getSessionStatus();
+        if (status.takeoverRequested) {
+          await handleForcedLogoutWithSave();
+        }
+      } catch {
+        // Ignore polling failures; normal API calls will handle auth issues.
+      }
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, isHandlingTakeover]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -157,6 +176,47 @@ export default function EditorPage() {
     }
   };
 
+  async function handleForcedLogoutWithSave() {
+    if (isHandlingTakeover) return;
+
+    try {
+      setIsHandlingTakeover(true);
+
+      toast({
+        title: 'Session transfer in progress',
+        description: 'Your progress is being saved and you are being logged out.',
+      });
+
+      const canvasState = useCanvasStore.getState();
+      const canvasJSON = canvasState.getCanvasJSON();
+      const canvasTitle = localStorage.getItem('currentCanvasTitle') || 'Untitled Diagram';
+      const canvasId = localStorage.getItem('currentCanvasId');
+
+      const stageEl = document.querySelector('.konvajs-content canvas') as HTMLCanvasElement | null;
+      const thumbnail = stageEl ? stageEl.toDataURL('image/png') : undefined;
+
+      try {
+        const response = await apiClient.saveCanvas({
+          ...(canvasId && { _id: canvasId }),
+          title: canvasTitle,
+          canvasData: canvasJSON,
+          thumbnail,
+        });
+
+        if (response.canvas && response.canvas._id) {
+          localStorage.setItem('currentCanvasId', response.canvas._id);
+        }
+      } catch (saveErr) {
+        console.error('Forced logout save failed:', saveErr);
+      }
+
+      logout();
+      navigate('/login');
+    } finally {
+      setIsHandlingTakeover(false);
+    }
+  }
+
   const handleUpgradeClick = async () => {
     try {
       setIsRedirecting(true);
@@ -229,6 +289,16 @@ export default function EditorPage() {
             <div className="flex flex-col items-center gap-4">
               <div className="h-12 w-12 rounded-full border-4 border-muted-foreground border-t-primary animate-spin" />
               <p className="text-sm font-medium text-muted-foreground">Loading canvas...</p>
+            </div>
+          </div>
+        )}
+
+        {isHandlingTakeover && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+            <div className="flex max-w-sm flex-col items-center gap-3 rounded-xl border border-border bg-card p-6 text-center shadow-xl">
+              <div className="h-10 w-10 rounded-full border-4 border-muted-foreground border-t-primary animate-spin" />
+              <p className="text-sm font-semibold">Your progress is being saved</p>
+              <p className="text-xs text-muted-foreground">You are being logged out because your account was opened on another device.</p>
             </div>
           </div>
         )}

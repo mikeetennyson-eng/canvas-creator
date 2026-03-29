@@ -18,6 +18,18 @@ import {
 } from './config/razorpay.js';
 import { handleRazorpayWebhook } from './webhooks/razorpay.js';
 import { checkExpiringSubscriptions } from './services/autoRenewal.js';
+import crypto from 'crypto';
+
+const SESSION_TAKEOVER_GRACE_MS = 2 * 60 * 1000;
+
+function generateSessionId(): string {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+function isTakeoverWindowActive(user: any): boolean {
+  if (!user.takeoverRequestedAt) return false;
+  return Date.now() - new Date(user.takeoverRequestedAt).getTime() <= SESSION_TAKEOVER_GRACE_MS;
+}
 
 // Helper to get header from Node.js or Web API request objects
 function getHeader(headers: any, name: string): string | undefined {
@@ -119,7 +131,13 @@ export default async function handler(req: any, res: any): Promise<void> {
             return;
           }
 
-          const user = await User.create({ name, email, password });
+          const initialSessionId = generateSessionId();
+          const user = await User.create({
+            name,
+            email,
+            password,
+            activeSessionId: initialSessionId,
+          });
 
           // Create free subscription
           const now = new Date();
@@ -134,7 +152,7 @@ export default async function handler(req: any, res: any): Promise<void> {
             autoRenewal: false,
           });
 
-          const token = generateToken({ id: user._id.toString(), email: user.email });
+          const token = generateToken({ id: user._id.toString(), email: user.email, sid: initialSessionId });
 
           res.status(201).json({
             message: 'User created successfully',
@@ -152,7 +170,7 @@ export default async function handler(req: any, res: any): Promise<void> {
       if (path === '/api/auth/login' && req.method === 'POST') {
         try {
           const body = await parseBody(req);
-          const { email, password } = body;
+          const { email, password, forceLogoutPrevious } = body;
 
           if (!email || !password) {
             res.status(400).json({ message: 'Email and password required' });
@@ -171,7 +189,28 @@ export default async function handler(req: any, res: any): Promise<void> {
             return;
           }
 
-          const token = generateToken({ id: user._id.toString(), email: user.email });
+          if (user.activeSessionId && !forceLogoutPrevious) {
+            res.status(409).json({
+              message: 'An active session exists on another device. Do you want to log out that session?',
+              code: 'SESSION_ACTIVE_ON_ANOTHER_DEVICE',
+            });
+            return;
+          }
+
+          const newSessionId = generateSessionId();
+          const previousSessionId = user.activeSessionId;
+
+          user.activeSessionId = newSessionId;
+          if (forceLogoutPrevious && previousSessionId) {
+            user.previousSessionId = previousSessionId;
+            user.takeoverRequestedAt = new Date();
+          } else {
+            user.previousSessionId = undefined;
+            user.takeoverRequestedAt = undefined;
+          }
+          await user.save();
+
+          const token = generateToken({ id: user._id.toString(), email: user.email, sid: newSessionId });
 
           res.status(200).json({
             message: 'Login successful',
@@ -204,11 +243,88 @@ export default async function handler(req: any, res: any): Promise<void> {
             return;
           }
 
+          const isCurrentSession = !!decoded.sid && decoded.sid === user.activeSessionId;
+          const isPreviousGraceSession =
+            !!decoded.sid &&
+            decoded.sid === user.previousSessionId &&
+            isTakeoverWindowActive(user);
+
+          if (!isCurrentSession && !isPreviousGraceSession) {
+            res.status(401).json({ message: 'Session expired. Please login again.' });
+            return;
+          }
+
           res.status(200).json({
             message: 'Token verified',
             user: { id: user._id, email: user.email },
           });
         } catch (error) {
+          res.status(401).json({ message: 'Invalid token' });
+        }
+        return;
+      }
+
+      // Session status for takeover flow (old session polls this)
+      if (path === '/api/auth/session-status' && req.method === 'GET') {
+        const authHeader = getHeader(req.headers, 'authorization');
+        const token = authHeader?.split(' ')[1];
+
+        if (!token) {
+          res.status(401).json({ message: 'No token provided' });
+          return;
+        }
+
+        try {
+          const decoded = verifyJWT(token);
+          const user = await User.findById(decoded.id);
+          if (!user) {
+            res.status(401).json({ message: 'User not found' });
+            return;
+          }
+
+          const takeoverActive = !!user.previousSessionId && isTakeoverWindowActive(user);
+          const takeoverRequested = takeoverActive && decoded.sid === user.previousSessionId;
+
+          res.status(200).json({
+            message: 'Session status fetched',
+            takeoverRequested,
+          });
+        } catch {
+          res.status(401).json({ message: 'Invalid token' });
+        }
+        return;
+      }
+
+      // Logout current/previous session entry
+      if (path === '/api/auth/logout-session' && req.method === 'POST') {
+        const authHeader = getHeader(req.headers, 'authorization');
+        const token = authHeader?.split(' ')[1];
+
+        if (!token) {
+          res.status(401).json({ message: 'No token provided' });
+          return;
+        }
+
+        try {
+          const decoded = verifyJWT(token);
+          const user = await User.findById(decoded.id);
+          if (!user) {
+            res.status(401).json({ message: 'User not found' });
+            return;
+          }
+
+          if (decoded.sid && decoded.sid === user.previousSessionId) {
+            user.previousSessionId = undefined;
+            user.takeoverRequestedAt = undefined;
+          }
+
+          if (decoded.sid && decoded.sid === user.activeSessionId) {
+            user.activeSessionId = undefined;
+          }
+
+          await user.save();
+          res.status(200).json({ message: 'Session logged out' });
+        } catch {
           res.status(401).json({ message: 'Invalid token' });
         }
         return;
@@ -225,7 +341,12 @@ export default async function handler(req: any, res: any): Promise<void> {
         }
 
         try {
-          verifyJWT(token);
+          const decoded = verifyJWT(token);
+          const user = await User.findById(decoded.id);
+          if (!user || decoded.sid !== user.activeSessionId) {
+            res.status(401).json({ message: 'Session expired. Please login again.' });
+            return;
+          }
           res.status(200).json({ message: 'Access granted' });
         } catch {
           res.status(401).json({ message: 'Invalid token' });
@@ -245,9 +366,30 @@ export default async function handler(req: any, res: any): Promise<void> {
       }
 
       let userId: string;
+      let canProceed = false;
       try {
         const decoded = verifyJWT(token);
         userId = decoded.id;
+
+        const user = await User.findById(decoded.id);
+        if (!user) {
+          res.status(401).json({ message: 'User not found' });
+          return;
+        }
+
+        const isCurrentSession = !!decoded.sid && decoded.sid === user.activeSessionId;
+        const isPreviousGraceSession =
+          !!decoded.sid &&
+          decoded.sid === user.previousSessionId &&
+          isTakeoverWindowActive(user);
+
+        const isSaveRoute = path === '/api/canvas/save' && (req.method === 'POST' || req.method === 'PUT');
+        canProceed = isCurrentSession || (isPreviousGraceSession && isSaveRoute);
+
+        if (!canProceed) {
+          res.status(401).json({ message: 'Session expired. Please login again.' });
+          return;
+        }
       } catch {
         res.status(401).json({ message: 'Invalid token' });
         return;
@@ -412,6 +554,12 @@ export default async function handler(req: any, res: any): Promise<void> {
       try {
         const decoded = verifyJWT(token);
         userId = decoded.id;
+
+        const user = await User.findById(decoded.id);
+        if (!user || decoded.sid !== user.activeSessionId) {
+          res.status(401).json({ message: 'Session expired. Please login again.' });
+          return;
+        }
       } catch {
         res.status(401).json({ message: 'Invalid token' });
         return;

@@ -9,6 +9,7 @@ const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
 export interface ITokenPayload {
   id: string;
   email: string;
+  sid?: string;
 }
 
 export const generateToken = (payload: ITokenPayload): string => {
@@ -27,6 +28,7 @@ export const verifyToken = (token: string): ITokenPayload => {
   return {
     id: decoded.id as string,
     email: decoded.email as string,
+    sid: decoded.sid as string | undefined,
   };
 };
 

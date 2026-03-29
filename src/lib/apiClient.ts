@@ -13,6 +13,7 @@ export interface SignupData {
 export interface LoginData {
   email: string;
   password: string;
+  forceLogoutPrevious?: boolean;
 }
 
 export interface AuthResponse {
@@ -31,6 +32,23 @@ export interface VerifyTokenResponse {
     id: string;
     email: string;
   };
+}
+
+export interface SessionStatusResponse {
+  message: string;
+  takeoverRequested: boolean;
+}
+
+export class ApiClientError extends Error {
+  code?: string;
+  status?: number;
+
+  constructor(message: string, code?: string, status?: number) {
+    super(message);
+    this.name = 'ApiClientError';
+    this.code = code;
+    this.status = status;
+  }
 }
 
 export interface SubscriptionInfo {
@@ -102,7 +120,7 @@ class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || `HTTP ${response.status}`);
+      throw new ApiClientError(data.message || `HTTP ${response.status}`, data.code, response.status);
     }
 
     return data as T;
@@ -141,6 +159,19 @@ class ApiClient {
     return this.request<VerifyTokenResponse>('/auth/verify', {
       method: 'POST',
       body: JSON.stringify({ token }),
+    });
+  }
+
+  async getSessionStatus(): Promise<SessionStatusResponse> {
+    return this.request<SessionStatusResponse>('/auth/session-status', {
+      method: 'GET',
+    });
+  }
+
+  async logoutSession(): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/auth/logout-session', {
+      method: 'POST',
+      body: JSON.stringify({}),
     });
   }
 
