@@ -103,8 +103,8 @@ export default function SignupPage() {
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+            <div className="w-9 h-9 rounded-lg overflow-hidden bg-background flex items-center justify-center">
+              <img src="/logo.png" alt="Demiqra logo" className="w-full h-full object-cover" />
             </div>
             <span className="font-bold text-lg">Demiqra</span>
           </Link>
