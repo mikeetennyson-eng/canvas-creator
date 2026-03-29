@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true,
+    "allowJs": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
     "lib": [
@@ -30,7 +31,7 @@
     "useDefineForClassFields": true
   },
   "include": [
-    "src",
-    "api"
+    "src/**/*.{ts,tsx,js,jsx}",
+    "api/**/*.js"
   ]
 }
