@@ -2,14 +2,10 @@
   "buildCommand": "npm run build",
   "framework": "vite",
   "outputDirectory": "dist",
-  "routes": [
+  "rewrites": [
     {
-      "src": "^/api/(.*)$",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "^(?!/api/)(?!.*\\..*$).*$",
-      "dest": "/index.html"
+      "source": "^(?!/api/)(?!.*\\..*$).*$",
+      "destination": "/index.html"
     }
   ]
 }
