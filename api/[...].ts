@@ -14,6 +14,7 @@ import {
   createRazorpayPlan,
   createRazorpaySubscription,
   getSubscriptionDetails,
+  cancelRazorpaySubscription,
 } from './config/razorpay.js';
 import { handleRazorpayWebhook } from './webhooks/razorpay.js';
 import { checkExpiringSubscriptions } from './services/autoRenewal.js';
@@ -600,6 +601,19 @@ export default async function handler(req: any, res: any): Promise<void> {
             return;
           }
 
+          if (subscription.subscriptionId) {
+            try {
+              await cancelRazorpaySubscription(subscription.subscriptionId, false);
+              console.log('[API] Razorpay subscription cancelled:', subscription.subscriptionId);
+            } catch (error) {
+              console.error('[API] Failed to cancel Razorpay subscription:', error);
+              res.status(502).json({
+                message: 'Failed to cancel subscription with payment provider. Please try again.',
+              });
+              return;
+            }
+          }
+
           const now = new Date();
           const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -610,6 +624,8 @@ export default async function handler(req: any, res: any): Promise<void> {
           subscription.currentPeriodEnd = periodEnd;
           subscription.autoRenewal = false;
           subscription.transactionId = undefined;
+          subscription.subscriptionId = undefined;
+          subscription.planId = undefined;
           subscription.notificationSent = false;
 
           await subscription.save();
