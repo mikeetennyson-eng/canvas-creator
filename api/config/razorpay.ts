@@ -47,14 +47,14 @@ export async function createRazorpaySubscription(
   customerId: string,
   planId: string,
   quantity: number = 1,
-  totalCount: number = 0 // 0 = use default (1200 for ~100 years)
+  totalCount: number = 0 // 0 = use default (12 billing cycles)
 ) {
   const razorpay = getRazorpayInstance();
 
   try {
     // Razorpay requires either total_count OR end_at
-    // For infinite subscriptions, use a large total_count (1200 = ~100 years of monthly charges)
-    const finalTotalCount = totalCount > 0 ? totalCount : 1200;
+    // Keep subscription duration near-term to avoid very long checkout mandate horizon.
+    const finalTotalCount = totalCount > 0 ? totalCount : 12;
 
     const subscription = await razorpay.subscriptions.create({
       plan_id: planId,
