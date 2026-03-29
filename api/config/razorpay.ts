@@ -84,7 +84,7 @@ export async function createRazorpayOrder(amount: number, userId: string) {
     const receipt = `order_${userIdShort}_${timestamp}`; // ~22 chars total
 
     const order = await razorpay.orders.create({
-      amount: amount, // Amount in paise (400 INR = 40000 paise)
+      amount: amount, // Amount in paise (349 INR = 34900 paise)
       currency: 'INR',
       receipt: receipt,
       notes: {

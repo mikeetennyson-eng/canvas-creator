@@ -221,6 +221,7 @@ export default function Index() {
       <footer className="border-t border-border bg-card/50 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center text-sm text-muted-foreground">
           <p>© 2026 Demiqra. Built with ❤️ for creative minds.</p>
+          <p className="mt-2">Support email: demiqra@gmail.com</p>
         </div>
       </footer>
     </div>

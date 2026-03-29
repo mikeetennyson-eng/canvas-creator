@@ -175,7 +175,7 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Price</p>
                     <p className="text-2xl font-bold">
-                      {subscription.plan === 'professional' ? '₹400' : '₹0'}
+                      {subscription.plan === 'professional' ? '₹349' : '₹0'}
                       <span className="text-base font-normal text-muted-foreground"> {subscription.plan === 'professional' ? '/month' : ''}</span>
                     </p>
                   </div>

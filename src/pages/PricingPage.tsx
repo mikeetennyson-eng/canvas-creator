@@ -343,8 +343,6 @@ export default function PricingPage() {
     { name: 'Projects', free: 'Unlimited', professional: 'Unlimited' },
     { name: 'Export Options', free: 'PNG, SVG', professional: 'PNG, SVG, PDF' },
     { name: 'Cloud Storage', free: '100 MB', professional: '1 GB' },
-    { name: 'Support', free: 'Community', professional: 'Priority Email' },
-    { name: 'Auto-save', free: 'Every 30s', professional: 'Real-time' },
   ];
 
   return (
@@ -422,7 +420,7 @@ export default function PricingPage() {
             <CardContent className="space-y-6">
               <div>
                 <div className="text-3xl font-bold text-gray-900">
-                  ₹400 <span className="text-base font-normal text-gray-600">/month</span>
+                  ₹349 <span className="text-base font-normal text-gray-600">/month</span>
                 </div>
                 <p className="text-gray-600 text-sm">Billed monthly, cancel anytime</p>
               </div>
@@ -531,7 +529,7 @@ export default function PricingPage() {
               <p className="text-gray-600">
                 <strong>Auto-Renewing:</strong> Your subscription automatically renews every 30 days. You'll receive a reminder 3 days before renewal and can cancel anytime.
                 <br/>
-                <strong>One-Time:</strong> A single 30-day subscription for ₹400. After 30 days, you can purchase again if needed.
+                <strong>One-Time:</strong> A single 30-day subscription for ₹349. After 30 days, you can purchase again if needed.
               </p>
             </div>
             <div>
@@ -543,7 +541,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">What happens when my subscription expires?</h3>
               <p className="text-gray-600">
-                If auto-renewal is enabled, your subscription will automatically renew on the expiry date and you'll be charged ₹400. If not enabled or if the payment fails, your account will automatically downgrade to the free plan. You can export your diagrams before the downgrade takes effect.
+                If auto-renewal is enabled, your subscription will automatically renew on the expiry date and you'll be charged ₹349. If not enabled or if the payment fails, your account will automatically downgrade to the free plan. You can export your diagrams before the downgrade takes effect.
               </p>
             </div>
             <div>
@@ -555,7 +553,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Are there any setup fees?</h3>
               <p className="text-gray-600">
-                No, there are no setup fees or hidden charges. You only pay ₹400 per 30 days for the professional plan.
+                No, there are no setup fees or hidden charges. You only pay ₹349 per 30 days for the professional plan.
               </p>
             </div>
             <div>
