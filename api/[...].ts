@@ -651,7 +651,7 @@ export default async function handler(req: any, res: any): Promise<void> {
       // Create Razorpay order
       if (path === '/api/subscription/create-order' && req.method === 'POST') {
         try {
-          const order = await createRazorpayOrder(40000, userId);
+          const order = await createRazorpayOrder(1000, userId);
 
           res.status(200).json({
             message: 'Order created successfully',

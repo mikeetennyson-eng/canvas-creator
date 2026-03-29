@@ -44,7 +44,7 @@ Currently implemented one-time orders work fine for initial upgrades. Auto-renew
    // const order = await createRazorpayOrder(40000, userId);
    
    // Do this:
-   const plan = await createRazorpayPlan('Canvas Creator Professional', 40000);
+   const plan = await createRazorpayPlan('Canvas Creator Professional', 100);
    const subscription = await createRazorpaySubscription(userId, plan.id);
    
    // Return subscription link to frontend
