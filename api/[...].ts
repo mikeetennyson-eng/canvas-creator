@@ -371,14 +371,21 @@ export default async function handler(req: any, res: any): Promise<void> {
           const tokenPart = authHeader?.split(' ')[1];
           const secret = process.env.CRON_SECRET;
 
+          let isAuthorized = false;
           if (tokenPart) {
-            try {
-              verifyJWT(tokenPart);
-            } catch {
-              res.status(401).json({ message: 'Invalid token' });
-              return;
+            if (secret && tokenPart === secret) {
+              isAuthorized = true;
+            } else {
+              try {
+                verifyJWT(tokenPart);
+                isAuthorized = true;
+              } catch {
+                isAuthorized = false;
+              }
             }
-          } else if (secret && tokenPart !== secret) {
+          }
+
+          if (!isAuthorized) {
             res.status(401).json({ message: 'Unauthorized' });
             return;
           }
@@ -430,7 +437,17 @@ export default async function handler(req: any, res: any): Promise<void> {
           }
 
           if (subscription.plan === 'professional' && new Date() > subscription.currentPeriodEnd!) {
-            subscription.status = 'expired';
+            if (!subscription.subscriptionId) {
+              subscription.plan = 'free';
+              subscription.status = 'active';
+              subscription.price = 0;
+              subscription.autoRenewal = false;
+              subscription.transactionId = undefined;
+              subscription.orderId = undefined;
+              subscription.planId = undefined;
+            } else {
+              subscription.status = 'expired';
+            }
             await subscription.save();
           }
 
