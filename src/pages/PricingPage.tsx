@@ -527,7 +527,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">What's the difference between Auto-Renewing and One-Time payment?</h3>
               <p className="text-gray-600">
-                <strong>Auto-Renewing:</strong> Your subscription automatically renews every 30 days. You'll receive a reminder 3 days before renewal and can cancel anytime.
+                <strong>Auto-Renewing:</strong> Your subscription automatically renews every 30 days. 
                 <br/>
                 <strong>One-Time:</strong> A single 30-day subscription for ₹349. After 30 days, you can purchase again if needed.
               </p>
@@ -535,7 +535,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Can I cancel my subscription anytime?</h3>
               <p className="text-gray-600">
-                Yes, you can cancel your auto-renewing subscription at any time from your profile. You'll have access to all professional features until the end of your current billing period. For one-time payments, you can reach out to support for a refund within 7 days of purchase.
+                Yes, you can cancel your auto-renewing subscription at any time from your profile. You'll have access to all professional features until the end of your current billing period.
               </p>
             </div>
             <div>
@@ -565,7 +565,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">How do I get an invoice?</h3>
               <p className="text-gray-600">
-                You'll receive an invoice via email after each payment. You can also view all your invoices in your account profile.
+                You'll receive an invoice via email or sms after each payment.
               </p>
             </div>
           </div>
