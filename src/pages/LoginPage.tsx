@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Sparkles, ArrowRight, Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();

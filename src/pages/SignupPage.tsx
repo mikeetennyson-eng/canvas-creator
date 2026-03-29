@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Sparkles, ArrowRight, Eye, EyeOff, Mail, Lock, User, Check, AlertCircle } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Mail, Lock, User, Check, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function SignupPage() {
