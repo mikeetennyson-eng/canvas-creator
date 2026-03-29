@@ -5,7 +5,7 @@ import { useSubscription } from '@/context/SubscriptionContext';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowRight, Calendar, Trash2, Edit2, ExternalLink, Crown, AlertCircle, RefreshCw } from 'lucide-react';
+import { ArrowRight, Calendar, Trash2, Edit2, ExternalLink, Crown, AlertCircle, RefreshCw, Sparkles } from 'lucide-react';
 
 interface Canvas {
   _id: string;
