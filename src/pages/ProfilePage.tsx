@@ -58,7 +58,7 @@ export default function ProfilePage() {
 
 
   const handleCancelSubscription = async () => {
-    if (!confirm('Are you sure you want to cancel your subscription? This will downgrade you to the free plan with a 20-icon limit.')) {
+    if (!confirm('Are you sure you want to cancel your subscription? This will downgrade you to the free plan with a 10-icon limit.')) {
       return;
     }
 
@@ -182,7 +182,7 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Icons per Project</p>
                     <p className="text-2xl font-bold">
-                      {subscription.plan === 'professional' ? 'Unlimited' : '20'}
+                      {subscription.plan === 'professional' ? 'Unlimited' : '10'}
                     </p>
                   </div>
                   {subscription.plan === 'professional' && (
@@ -263,7 +263,7 @@ export default function ProfilePage() {
           <div>
             <div className="mb-8">
               <h2 className="text-2xl font-bold">Recent Creations</h2>
-              <p className="text-muted-foreground mt-2">Your last 5 saved diagrams</p>
+              <p className="text-muted-foreground mt-2">Your last 10 saved diagrams</p>
             </div>
 
             {error && (

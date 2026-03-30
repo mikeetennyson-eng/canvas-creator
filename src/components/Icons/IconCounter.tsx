@@ -7,9 +7,9 @@ export default function IconCounter() {
   const { subscription, isFreeUser } = useSubscription();
 
   const iconCount = elements.filter((el) => el.type === 'icon').length;
-  const maxIcons = isFreeUser() ? 20 : Infinity;
-  const isNearLimit = isFreeUser() && iconCount >= 15;
-  const isAtLimit = isFreeUser() && iconCount >= 20;
+  const maxIcons = isFreeUser() ? 10 : Infinity;
+  const isNearLimit = isFreeUser() && iconCount >= 8;
+  const isAtLimit = isFreeUser() && iconCount >= 10;
 
   if (!isFreeUser()) {
     return null; // Don't show for professional users

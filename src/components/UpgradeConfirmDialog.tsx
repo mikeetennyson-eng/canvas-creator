@@ -19,7 +19,7 @@ export function UpgradeConfirmDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Icon Limit Reached</AlertDialogTitle>
           <AlertDialogDescription>
-            You've reached the maximum of 20 icons per project on the free plan. 
+            You've reached the maximum of 10 icons per project on the free plan. 
             Would you like to upgrade to the Professional plan for unlimited icons?
           </AlertDialogDescription>
         </AlertDialogHeader>

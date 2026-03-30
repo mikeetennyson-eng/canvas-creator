@@ -425,6 +425,20 @@ export default async function handler(req: any, res: any): Promise<void> {
             });
           }
 
+          // Enforce 10-canvas limit: delete older canvases if user exceeds 10
+          try {
+            const allCanvases = await Canvas.find({ userId }).sort({ updatedAt: -1 });
+            if (allCanvases.length > 10) {
+              const canvasesToDelete = allCanvases.slice(10);
+              const idsToDelete = canvasesToDelete.map((c) => c._id);
+              await Canvas.deleteMany({ _id: { $in: idsToDelete } });
+              console.log(`[Canvas] Deleted ${canvasesToDelete.length} old canvases for user ${userId} to maintain 10-canvas limit`);
+            }
+          } catch (cleanupError) {
+            console.error('[Canvas] Error enforcing canvas limit:', cleanupError);
+            // Don't fail the save if cleanup fails
+          }
+
           res.status(200).json({ message: 'Canvas saved', canvas });
         } catch (error) {
           console.error('Save canvas error:', error);

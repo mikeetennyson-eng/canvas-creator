@@ -3,7 +3,7 @@ import { useSubscription } from '@/context/SubscriptionContext';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/apiClient';
@@ -16,7 +16,7 @@ declare global {
 
 export default function PricingPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { subscription, isLoading, refreshSubscription } = useSubscription();
   const { toast } = useToast();
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -339,7 +339,7 @@ export default function PricingPage() {
   };
 
   const features = [
-    { name: 'Icons per project', free: '20', professional: 'Unlimited' },
+    { name: 'Icons per project', free: '10', professional: 'Unlimited' },
     { name: 'Projects', free: 'Unlimited', professional: 'Unlimited' },
     { name: 'Export Options', free: 'PNG, SVG', professional: 'PNG, SVG, PDF' },
     { name: 'Cloud Storage', free: '100 MB', professional: '1 GB' },
@@ -347,7 +347,66 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <div className="container mx-auto px-4 py-12">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 cursor-pointer hover:opacity-80" onClick={() => navigate('/')}>
+            <img src="/logo2.png" alt="Demiqra" className="w-11 h-11 rounded-lg object-contain" />
+            <span className="font-bold text-lg">Demiqra</span>
+          </div>
+          <div className="flex items-center gap-3">
+            {isAuthenticated ? (
+              <>
+                <Button
+                  onClick={() => navigate('/profile')}
+                  variant="ghost"
+                  size="sm"
+                >
+                  Profile
+                </Button>
+                <Button
+                  onClick={() => navigate('/editor')}
+                  variant="default"
+                  size="sm"
+                  className="gap-2"
+                >
+                  Create <ArrowRight className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    logout();
+                    navigate('/');
+                  }}
+                  variant="ghost"
+                  size="sm"
+                >
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={() => navigate('/login')}
+                  variant="ghost"
+                  size="sm"
+                >
+                  Sign In
+                </Button>
+                <Button
+                  onClick={() => navigate('/signup')}
+                  variant="default"
+                  size="sm"
+                  className="gap-2"
+                >
+                  Sign Up <ArrowRight className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      <div className="container mx-auto px-4 py-12 pt-32">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -558,15 +617,18 @@ export default function PricingPage() {
                 Yes, we use Razorpay for all payments, which is PCI DSS compliant and uses industry-standard encryption to protect your payment information. Your card details are never stored on our servers.
               </p>
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">How do I get an invoice?</h3>
-              <p className="text-gray-600">
-                You'll receive an invoice via email or sms after each payment.
-              </p>
-            </div>
+            
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-card/50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto text-center text-sm text-muted-foreground">
+          <p>© 2026 Demiqra. Built with ❤️ for creative minds.</p>
+          <p className="mt-2">Support email: demiqra@gmail.com</p>
+        </div>
+      </footer>
     </div>
   );
 }
