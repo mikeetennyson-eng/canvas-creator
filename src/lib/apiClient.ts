@@ -117,14 +117,7 @@ class ApiClient {
       headers,
     });
 
-    const responseText = await response.text();
-    let data: any = {};
-
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      data = { message: responseText || `HTTP ${response.status}` };
-    }
+    const data = await response.json();
 
     if (!response.ok) {
       throw new ApiClientError(data.message || `HTTP ${response.status}`, data.code, response.status);
