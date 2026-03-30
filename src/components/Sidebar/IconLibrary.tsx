@@ -28,7 +28,7 @@ function IconCard({
     // Check icon limit for free users
     if (isFreeUser()) {
       const iconCount = elements.filter((el) => el.type === 'icon').length;
-      if (iconCount >= 20) {
+      if (iconCount >= 10) {
         // Show upgrade dialog instead of auto-redirecting
         onUpgradeRequest?.();
         return;
