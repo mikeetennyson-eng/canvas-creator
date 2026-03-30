@@ -222,6 +222,27 @@ export default function Index() {
         <div className="max-w-6xl mx-auto text-center text-sm text-muted-foreground">
           <p>© 2026 Demiqra. Built with ❤️ for creative minds.</p>
           <p className="mt-2">Support email: demiqra@gmail.com</p>
+          <p className="mt-2 text-xs">
+            Icon attribution: Icons by{' '}
+            <a
+              href="https://bioicons.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              BioIcons
+            </a>{' '}
+            and{' '}
+            <a
+              href="https://smart.servier.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Servier Medical Art
+            </a>{' '}
+            (CC BY 3.0).
+          </p>
         </div>
       </footer>
     </div>

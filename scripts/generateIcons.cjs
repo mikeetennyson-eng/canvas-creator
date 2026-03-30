@@ -23,7 +23,7 @@ function walk(dir, category) {
         svg_url: `/icons/${dir.replace(path.join(__dirname, '../public/icons'), '').replace(/\\/g, '/')}/${file}`,
         attribution_required: true,
         author: 'BioIcons',
-        license: 'CC BY 4.0',
+        license: 'CC BY 3.0',
         source_url: 'https://bioicons.com'
       });
     }
