@@ -4,10 +4,12 @@
   "outputDirectory": "dist",
   "routes": [
     {
-      "handle": "filesystem"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     },
     {
       "src": "/(.*)",
+      "methods": ["GET", "HEAD"],
       "dest": "/index.html"
     }
   ]
