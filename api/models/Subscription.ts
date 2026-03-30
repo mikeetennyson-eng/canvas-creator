@@ -7,7 +7,7 @@ export interface ISubscription extends Document {
   userId: mongoose.Schema.Types.ObjectId;
   plan: PlanType;
   status: SubscriptionStatus;
-  price: number; // in paise (349 Rs = 34900 paise for professional)
+  price: number; // in paise (299 Rs = 29900 paise for professional)
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   autoRenewal: boolean;

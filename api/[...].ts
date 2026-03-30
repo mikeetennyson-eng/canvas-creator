@@ -830,7 +830,7 @@ export default async function handler(req: any, res: any): Promise<void> {
       // Create Razorpay order
       if (path === '/api/subscription/create-order' && req.method === 'POST') {
         try {
-          const order = await createRazorpayOrder(34900, userId);
+          const order = await createRazorpayOrder(29900, userId);
 
           res.status(200).json({
             message: 'Order created successfully',
@@ -868,7 +868,7 @@ export default async function handler(req: any, res: any): Promise<void> {
 
           if (!planId) {
             console.log('[API] Creating new Razorpay plan...');
-            const plan = await createRazorpayPlan('Canvas Creator Professional', 34900, 1, 'monthly');
+            const plan = await createRazorpayPlan('Canvas Creator Professional', 29900, 1, 'monthly');
             planId = plan.id;
             console.log('[API] Plan created:', planId);
           }
@@ -946,7 +946,7 @@ export default async function handler(req: any, res: any): Promise<void> {
 
           subscription.plan = 'professional';
           subscription.status = 'active';
-          subscription.price = 34900;
+          subscription.price = 29900;
           subscription.currentPeriodStart = now;
           subscription.currentPeriodEnd = periodEnd;
           subscription.autoRenewal = false; // ONE-TIME PAYMENT - NO AUTO-RENEWAL
@@ -1023,7 +1023,7 @@ export default async function handler(req: any, res: any): Promise<void> {
 
             subscription.plan = 'professional';
             subscription.status = 'active';
-            subscription.price = 34900;
+            subscription.price = 29900;
             subscription.currentPeriodStart = now;
             subscription.currentPeriodEnd = periodEnd;
             subscription.autoRenewal = true;

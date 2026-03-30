@@ -41,7 +41,7 @@ export default function LoginPage() {
     
     try {
       await login(email, password);
-      navigate('/editor');
+      navigate('/profile');
     } catch (error) {
       if (error instanceof ApiClientError && error.code === 'SESSION_ACTIVE_ON_ANOTHER_DEVICE') {
         const confirmed = window.confirm(
@@ -54,7 +54,7 @@ export default function LoginPage() {
 
         try {
           await login(email, password, true);
-          navigate('/editor');
+          navigate('/profile');
           return;
         } catch (forceError) {
           const forceErrorMsg = forceError instanceof Error ? forceError.message : 'Login takeover failed. Please try again.';

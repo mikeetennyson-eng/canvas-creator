@@ -64,7 +64,7 @@ export default function SignupPage() {
         formData.password,
         formData.confirmPassword
       );
-      navigate('/editor');
+      navigate('/profile');
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Signup failed. Please try again.';
       setGeneralError(errorMsg);

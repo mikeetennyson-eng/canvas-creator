@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 import Toolbar from '@/components/Toolbar/Toolbar';
 import IconLibrary from '@/components/Sidebar/IconLibrary';
 import IconCounter from '@/components/Icons/IconCounter';
@@ -12,11 +13,14 @@ import { useCanvasStore } from '@/stores/canvasStore';
 import { apiClient } from '@/lib/apiClient';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Monitor, Home } from 'lucide-react';
 
 export default function EditorPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const setIcons = useIconStore((s) => s.setIcons);
   const setLoading = useIconStore((s) => s.setLoading);
   const removeSelected = useCanvasStore((s) => s.removeSelected);
@@ -267,42 +271,78 @@ export default function EditorPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
-      <Toolbar onSave={autoSaveCanvas} isSaving={isSaving} />
-      <div className="flex flex-1 overflow-hidden relative">
-        <IconLibrary onUpgradeRequest={() => setShowUpgradeDialog(true)} />
-        <CanvasEditor />
-        <PropertiesPanel />
-        <IconCounter />
-
-        {/* Upgrade confirmation dialog */}
-        <UpgradeConfirmDialog
-          open={showUpgradeDialog}
-          onOpenChange={setShowUpgradeDialog}
-          onConfirm={handleUpgradeClick}
-          isLoading={isRedirecting}
-        />
-        
-        {/* Loading overlay */}
-        {isLoadingCanvas && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
-            <div className="flex flex-col items-center gap-4">
-              <div className="h-12 w-12 rounded-full border-4 border-muted-foreground border-t-primary animate-spin" />
-              <p className="text-sm font-medium text-muted-foreground">Loading canvas...</p>
+    <>
+      {isMobile ? (
+        // Mobile view - show message asking to use desktop
+        <div className="flex h-screen flex-col items-center justify-center bg-gradient-to-br from-background to-muted p-6">
+          <div className="max-w-md text-center space-y-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/20">
+              <Monitor className="w-10 h-10 text-primary" />
             </div>
-          </div>
-        )}
-
-        {isHandlingTakeover && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
-            <div className="flex max-w-sm flex-col items-center gap-3 rounded-xl border border-border bg-card p-6 text-center shadow-xl">
-              <div className="h-10 w-10 rounded-full border-4 border-muted-foreground border-t-primary animate-spin" />
-              <p className="text-sm font-semibold">Your progress is being saved</p>
-              <p className="text-xs text-muted-foreground">You are being logged out because your account was opened on another device.</p>
+            
+            <div>
+              <h1 className="text-2xl font-bold mb-2">Desktop Only</h1>
+              <p className="text-muted-foreground mb-4">
+                The canvas editor is optimized for desktop and laptop screens. For the best experience and full functionality, please open this on your computer.
+              </p>
             </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-900">
+                💡 <strong>Tip:</strong> You can still view your saved diagrams and manage your profile on mobile.
+              </p>
+            </div>
+
+            <Button
+              onClick={() => navigate('/profile')}
+              variant="default"
+              className="w-full gap-2"
+            >
+              <Home className="w-4 h-4" />
+              Go to Profile
+            </Button>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      ) : (
+        // Desktop view - show full editor
+        <div className="flex h-screen flex-col overflow-hidden bg-background">
+          <Toolbar onSave={autoSaveCanvas} isSaving={isSaving} />
+          <div className="flex flex-1 overflow-hidden relative">
+            <IconLibrary onUpgradeRequest={() => setShowUpgradeDialog(true)} />
+            <CanvasEditor />
+            <PropertiesPanel />
+            <IconCounter />
+
+            {/* Upgrade confirmation dialog */}
+            <UpgradeConfirmDialog
+              open={showUpgradeDialog}
+              onOpenChange={setShowUpgradeDialog}
+              onConfirm={handleUpgradeClick}
+              isLoading={isRedirecting}
+            />
+            
+            {/* Loading overlay */}
+            {isLoadingCanvas && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="h-12 w-12 rounded-full border-4 border-muted-foreground border-t-primary animate-spin" />
+                  <p className="text-sm font-medium text-muted-foreground">Loading canvas...</p>
+                </div>
+              </div>
+            )}
+
+            {isHandlingTakeover && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+                <div className="flex max-w-sm flex-col items-center gap-3 rounded-xl border border-border bg-card p-6 text-center shadow-xl">
+                  <div className="h-10 w-10 rounded-full border-4 border-muted-foreground border-t-primary animate-spin" />
+                  <p className="text-sm font-semibold">Your progress is being saved</p>
+                  <p className="text-xs text-muted-foreground">You are being logged out because your account was opened on another device.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

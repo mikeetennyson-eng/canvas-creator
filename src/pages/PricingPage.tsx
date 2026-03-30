@@ -478,10 +478,17 @@ export default function PricingPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <div className="text-3xl font-bold text-gray-900">
-                  ₹349 <span className="text-base font-normal text-gray-600">/month</span>
+                <div className="relative">
+                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                    40% OFF
+                  </div>
                 </div>
-                <p className="text-gray-600 text-sm">Billed monthly, cancel anytime</p>
+                <div className="text-3xl font-bold text-gray-900 mt-6">
+                  <span className="line-through text-gray-400 text-lg mr-2">₹499</span>
+                  <span className="text-green-600">₹299</span>
+                  <span className="text-base font-normal text-gray-600">/month</span>
+                </div>
+                <p className="text-gray-600 text-sm mt-2">Billed monthly, cancel anytime</p>
               </div>
 
               {subscription?.plan === 'professional' ? (
@@ -584,7 +591,7 @@ export default function PricingPage() {
               <p className="text-gray-600">
                 <strong>Auto-Renewing:</strong> Your subscription automatically renews every 30 days. 
                 <br/>
-                <strong>One-Time:</strong> A single 30-day subscription for ₹349. After 30 days, you can purchase again if needed.
+                <strong>One-Time:</strong> A single 30-day subscription for ₹299. After 30 days, you can purchase again if needed.
               </p>
             </div>
             <div>
@@ -596,7 +603,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">What happens when my subscription expires?</h3>
               <p className="text-gray-600">
-                If auto-renewal is enabled, your subscription will automatically renew on the expiry date and you'll be charged ₹349. If not enabled or if the payment fails, your account will automatically downgrade to the free plan. You can export your diagrams before the downgrade takes effect.
+                If auto-renewal is enabled, your subscription will automatically renew on the expiry date and you'll be charged ₹299. If not enabled or if the payment fails, your account will automatically downgrade to the free plan. You can export your diagrams before the downgrade takes effect.
               </p>
             </div>
             <div>
@@ -608,7 +615,7 @@ export default function PricingPage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Are there any setup fees?</h3>
               <p className="text-gray-600">
-                No, there are no setup fees or hidden charges. You only pay ₹349 per 30 days for the professional plan.
+                No, there are no setup fees or hidden charges. You only pay ₹299 per 30 days for the professional plan.
               </p>
             </div>
             <div>
