@@ -432,8 +432,9 @@ export default function PricingPage() {
               ) : (
                 <div className="space-y-3">
                   {/* Payment type toggle */}
-                  <div className="flex gap-2">
-                    <button
+                  <div className="flex gap-2 justify-center">
+                    {/* Auto-Renewing button - commented out for now */}
+                    {/* <button
                       onClick={() => setPaymentType('recurring')}
                       className={`flex-1 px-3 py-2 text-sm rounded-md font-medium transition ${
                         paymentType === 'recurring'
@@ -442,24 +443,18 @@ export default function PricingPage() {
                       }`}
                     >
                       Auto-Renewing
-                    </button>
+                    </button> */}
                     <button
                       onClick={() => setPaymentType('onetime')}
-                      className={`flex-1 px-3 py-2 text-sm rounded-md font-medium transition ${
-                        paymentType === 'onetime'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className="px-6 py-2 text-sm rounded-md font-medium bg-blue-600 text-white hover:bg-blue-700 transition"
                     >
-                      One-Time
+                      Pay for one month
                     </button>
                   </div>
 
                   {/* Payment type info */}
                   <div className="text-xs text-gray-600 text-center">
-                    {paymentType === 'recurring' 
-                      ? 'Auto-renews every 30 days, cancel anytime'
-                      : 'One-time payment, 30 days access'}
+                    One-time payment, 30 days access
                   </div>
 
                   {/* Verification status */}
