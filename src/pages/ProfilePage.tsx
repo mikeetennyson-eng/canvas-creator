@@ -36,7 +36,12 @@ export default function ProfilePage() {
     try {
       setIsLoading(true);
       const response = await apiClient.getUserCanvases();
-      setCanvases(response.canvases || []);
+      // Sort by most recent first and limit to 10
+      const canvasesList = response.canvases || [];
+      const sorted = canvasesList.sort((a, b) => 
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
+      setCanvases(sorted.slice(0, 10));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load canvases');
     } finally {
