@@ -20,7 +20,7 @@ export default function PricingPage() {
   const { subscription, isLoading, refreshSubscription } = useSubscription();
   const { toast } = useToast();
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [paymentType, setPaymentType] = useState<'recurring' | 'onetime'>('recurring');
+  const [paymentType, setPaymentType] = useState<'recurring' | 'onetime'>('onetime');
   const [verifyingSubscription, setVerifyingSubscription] = useState(false);
 
   // Load Razorpay script
@@ -445,10 +445,11 @@ export default function PricingPage() {
                       Auto-Renewing
                     </button> */}
                     <button
-                      onClick={() => setPaymentType('onetime')}
-                      className="px-6 py-2 text-sm rounded-md font-medium bg-blue-600 text-white hover:bg-blue-700 transition"
+                      onClick={handleUpgrade}
+                      disabled={processingPayment || isLoading || verifyingSubscription}
+                      className="px-6 py-2 text-sm rounded-md font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition"
                     >
-                      Pay for one month
+                      {processingPayment ? 'Processing...' : 'Pay for one month'}
                     </button>
                   </div>
 
@@ -472,14 +473,14 @@ export default function PricingPage() {
                     </div>
                   )}
 
-                  {/* Upgrade button */}
-                  <Button
+                  {/* Upgrade button - commented out, functionality moved to Pay button above */}
+                  {/* <Button
                     onClick={handleUpgrade}
                     disabled={processingPayment || isLoading || verifyingSubscription}
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
                     {processingPayment ? 'Processing...' : verifyingSubscription ? 'Verifying...' : 'Upgrade Now'}
-                  </Button>
+                  </Button> */}
                 </div>
               )}
 
