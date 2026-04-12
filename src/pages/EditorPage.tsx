@@ -37,6 +37,7 @@ export default function EditorPage() {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isHandlingTakeover, setIsHandlingTakeover] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const [tourSessionId, setTourSessionId] = useState(0);
 
   // Handle canvas loading or creating new
   useEffect(() => {
@@ -67,8 +68,14 @@ export default function EditorPage() {
     if (!isAuthenticated || !user) return;
     if (!user.isTourShown) {
       setShowTour(true);
+      setTourSessionId((current) => current + 1);
     }
   }, [isAuthenticated, user]);
+
+  const launchTour = () => {
+    setShowTour(true);
+    setTourSessionId((current) => current + 1);
+  };
 
   // Auto-save every 30 seconds
   useEffect(() => {
@@ -324,11 +331,12 @@ export default function EditorPage() {
       ) : (
         // Desktop view - show full editor
         <div className="flex h-screen flex-col overflow-hidden bg-background">
-          <Toolbar onSave={autoSaveCanvas} isSaving={isSaving} />
+          <Toolbar onSave={autoSaveCanvas} isSaving={isSaving} onTakeTour={launchTour} />
           <EditorTour
             open={showTour}
             onClose={() => setShowTour(false)}
             onComplete={handleTourComplete}
+            sessionId={tourSessionId}
           />
           <div className="flex flex-1 overflow-hidden relative">
             <IconLibrary onUpgradeRequest={() => setShowUpgradeDialog(true)} />

@@ -1,7 +1,7 @@
 import {
   MousePointer2, Square, Circle, Type, ArrowUpRight,
   Download, FileJson, ScrollText, ZoomIn, ZoomOut,
-  Undo2, Redo2, Home, Save, Clock, Plus, Trash2,
+  Undo2, Redo2, Home, Save, Clock, Plus, Trash2, HelpCircle,
 } from 'lucide-react';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { useIconStore } from '@/stores/iconStore';
@@ -18,7 +18,7 @@ const tools: { id: ToolType; icon: typeof MousePointer2; label: string }[] = [
   { id: 'arrow', icon: ArrowUpRight, label: 'Arrow' },
 ]
 
-export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isSaving?: boolean }) {
+export default function Toolbar({ onSave, isSaving, onTakeTour }: { onSave?: () => void; isSaving?: boolean; onTakeTour?: () => void }) {
   const navigate = useNavigate();
   const { activeTool, setActiveTool, zoom, setZoom, getCanvasJSON, elements, selectedIds, setSelectedIds, removeSelected } = useCanvasStore();
   const usedIcons = useIconStore((s) => s.usedIcons);
@@ -155,6 +155,17 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
             <Clock className="h-3.5 w-3.5" />
             Recent Edits
           </button>
+
+          {onTakeTour && (
+            <button
+              onClick={onTakeTour}
+              className="ml-1 flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-primary transition-all hover:bg-primary/15 active:scale-95"
+              title="Take a tour again"
+            >
+              <HelpCircle className="h-3.5 w-3.5" />
+              Tour
+            </button>
+          )}
 
 
         </div>

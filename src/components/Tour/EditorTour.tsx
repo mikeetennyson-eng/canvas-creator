@@ -5,6 +5,7 @@ interface EditorTourProps {
   open: boolean;
   onClose: () => void;
   onComplete: () => void;
+  sessionId: number;
 }
 
 interface TourStep {
@@ -60,7 +61,7 @@ const STEPS: TourStep[] = [
   },
 ];
 
-export default function EditorTour({ open, onClose, onComplete }: EditorTourProps) {
+export default function EditorTour({ open, onClose, onComplete, sessionId }: EditorTourProps) {
   const { elements, selectedIds } = useCanvasStore();
   const [showPrompt, setShowPrompt] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
@@ -102,7 +103,7 @@ export default function EditorTour({ open, onClose, onComplete }: EditorTourProp
     initialRectCountRef.current = elements.filter((el) => el.type === 'shape' && el.shapeType === 'rect').length;
     setShowPrompt(true);
     setStepIndex(0);
-  }, [open]);
+  }, [open, sessionId]);
 
   useEffect(() => {
     if (!open || showPrompt) return;
@@ -140,8 +141,8 @@ export default function EditorTour({ open, onClose, onComplete }: EditorTourProp
 
   if (showPrompt) {
     return (
-      <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/60">
-        <div className="w-[92vw] max-w-md rounded-xl border border-border bg-card p-5 shadow-2xl">
+      <div className="pointer-events-none fixed inset-0 z-[1200] bg-black/60">
+        <div className="pointer-events-auto absolute left-1/2 top-1/2 w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-5 shadow-2xl">
           <h3 className="text-lg font-semibold text-foreground">Take a quick tour?</h3>
           <p className="mt-2 text-sm text-muted-foreground">
             We will walk you through adding icons, drawing shapes, editing properties, saving, and downloading your canvas.
@@ -166,7 +167,7 @@ export default function EditorTour({ open, onClose, onComplete }: EditorTourProp
   }
 
   const fallbackCard = (
-    <div className="fixed left-1/2 top-6 z-[1202] w-[92vw] max-w-md -translate-x-1/2 rounded-xl border border-border bg-card p-4 shadow-xl">
+    <div className="pointer-events-auto fixed left-1/2 top-6 z-[1202] w-[92vw] max-w-md -translate-x-1/2 rounded-xl border border-border bg-card p-4 shadow-xl">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Step {stepIndex + 1} of {STEPS.length}
       </p>
@@ -226,7 +227,7 @@ export default function EditorTour({ open, onClose, onComplete }: EditorTourProp
   );
 
   return (
-    <div className="fixed inset-0 z-[1200]">
+    <div className="pointer-events-none fixed inset-0 z-[1200]">
       <div
         className="pointer-events-none fixed z-[1201] rounded-lg border-2 border-primary"
         style={{
@@ -239,7 +240,7 @@ export default function EditorTour({ open, onClose, onComplete }: EditorTourProp
       />
 
       <div
-        className="fixed z-[1202] rounded-xl border border-border bg-card p-4 shadow-xl"
+        className="pointer-events-auto fixed z-[1202] rounded-xl border border-border bg-card p-4 shadow-xl"
         style={{
           left: cardLeft,
           top: cardTop,
