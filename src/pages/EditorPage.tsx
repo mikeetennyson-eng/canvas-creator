@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Monitor, Home } from 'lucide-react';
+import EditorTour from '@/components/Tour/EditorTour';
 
 export default function EditorPage() {
   const [searchParams] = useSearchParams();
@@ -28,13 +29,14 @@ export default function EditorPage() {
   const resetCanvas = useCanvasStore((s) => s.resetCanvas);
   const loadCanvasJSON = useCanvasStore((s) => s.loadCanvasJSON);
   const getCanvasJSON = useCanvasStore((s) => s.getCanvasJSON);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user, markTourShown } = useAuth();
   const canvasId = searchParams.get('load');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingCanvas, setIsLoadingCanvas] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isHandlingTakeover, setIsHandlingTakeover] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   // Handle canvas loading or creating new
   useEffect(() => {
@@ -59,6 +61,14 @@ export default function EditorPage() {
       setLoading(false);
     });
   }, [setIcons, setLoading]);
+
+  // Show guided tour once for users who haven't completed it yet.
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    if (!user.isTourShown) {
+      setShowTour(true);
+    }
+  }, [isAuthenticated, user]);
 
   // Auto-save every 30 seconds
   useEffect(() => {
@@ -270,6 +280,14 @@ export default function EditorPage() {
     }
   };
 
+  const handleTourComplete = async () => {
+    try {
+      await markTourShown();
+    } catch (err) {
+      console.error('Failed to persist tour completion:', err);
+    }
+  };
+
   return (
     <>
       {isMobile ? (
@@ -307,6 +325,11 @@ export default function EditorPage() {
         // Desktop view - show full editor
         <div className="flex h-screen flex-col overflow-hidden bg-background">
           <Toolbar onSave={autoSaveCanvas} isSaving={isSaving} />
+          <EditorTour
+            open={showTour}
+            onClose={() => setShowTour(false)}
+            onComplete={handleTourComplete}
+          />
           <div className="flex flex-1 overflow-hidden relative">
             <IconLibrary onUpgradeRequest={() => setShowUpgradeDialog(true)} />
             <CanvasEditor />

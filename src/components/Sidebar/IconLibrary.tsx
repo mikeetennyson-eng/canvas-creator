@@ -89,7 +89,7 @@ export default function IconLibrary({ onUpgradeRequest }: IconLibraryProps) {
   const [showFilters, setShowFilters] = useState(false);
 
   return (
-    <div className="flex h-full w-64 flex-col border-r border-panel-border bg-card">
+    <div data-tour="icon-library" className="flex h-full w-64 flex-col border-r border-panel-border bg-card">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-panel-border px-3 py-2.5">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Icons</h2>

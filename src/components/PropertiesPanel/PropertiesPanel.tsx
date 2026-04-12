@@ -8,7 +8,7 @@ export default function PropertiesPanel() {
 
   if (!selected) {
     return (
-      <div className="flex h-full w-56 flex-col border-l border-panel-border bg-card">
+      <div data-tour="properties-panel" className="flex h-full w-56 flex-col border-l border-panel-border bg-card">
         <div className="border-b border-panel-border px-3 py-2.5">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Properties</h2>
         </div>
@@ -26,7 +26,7 @@ export default function PropertiesPanel() {
   const update = (updates: Record<string, unknown>) => updateElement(selected.id, updates);
 
   return (
-    <div className="flex h-full w-56 flex-col border-l border-panel-border bg-card">
+    <div data-tour="properties-panel" className="flex h-full w-56 flex-col border-l border-panel-border bg-card">
       <div className="border-b border-panel-border px-3 py-2.5">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Properties</h2>
       </div>

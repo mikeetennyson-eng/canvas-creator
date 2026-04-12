@@ -8,6 +8,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  isTourShown: boolean;
   activeSessionId?: string;
   previousSessionId?: string;
   takeoverRequestedAt?: Date;
@@ -43,6 +44,10 @@ const userSchema = new Schema<IUser>(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
         'Password must contain at least one uppercase letter, one lowercase letter, and one number',
       ],
+    },
+    isTourShown: {
+      type: Boolean,
+      default: false,
     },
     activeSessionId: {
       type: String,

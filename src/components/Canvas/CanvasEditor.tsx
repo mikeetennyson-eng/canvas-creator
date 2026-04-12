@@ -595,6 +595,7 @@ export default function CanvasEditor() {
   return (
     <div
       ref={containerRef}
+      data-tour="canvas-area"
       className="relative flex-1 overflow-hidden bg-canvas"
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}

@@ -55,6 +55,7 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
               key={t.id}
               onClick={() => setActiveTool(t.id)}
               title={t.label}
+              data-tour={`tool-${t.id}`}
               className={`rounded-md p-2 transition-all duration-150 active:scale-95 ${
                 activeTool === t.id
                   ? 'bg-primary text-primary-foreground shadow-sm'
@@ -114,7 +115,7 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
 
           <div className="mx-1.5 h-5 w-px bg-border" />
 
-          <button onClick={handleExportPNG} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95">
+          <button data-tour="download-png-button" onClick={handleExportPNG} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95">
             <Download className="h-3.5 w-3.5" />
             PNG
           </button>
@@ -129,6 +130,7 @@ export default function Toolbar({ onSave, isSaving }: { onSave?: () => void; isS
             <button
               onClick={onSave}
               disabled={isSaving}
+              data-tour="save-button"
               className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95 disabled:opacity-50"
             >
               <Save className="h-3.5 w-3.5" />

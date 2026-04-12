@@ -23,6 +23,7 @@ export interface AuthResponse {
     id: string;
     name: string;
     email: string;
+    isTourShown?: boolean;
   };
 }
 
@@ -30,7 +31,19 @@ export interface VerifyTokenResponse {
   message: string;
   user: {
     id: string;
+    name?: string;
     email: string;
+    isTourShown?: boolean;
+  };
+}
+
+export interface TourStatusResponse {
+  message: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    isTourShown: boolean;
   };
 }
 
@@ -178,6 +191,13 @@ class ApiClient {
   async getProtected(): Promise<any> {
     return this.request('/auth/protected', {
       method: 'GET',
+    });
+  }
+
+  async updateTourStatus(isTourShown: boolean): Promise<TourStatusResponse> {
+    return this.request<TourStatusResponse>('/auth/tour-status', {
+      method: 'POST',
+      body: JSON.stringify({ isTourShown }),
     });
   }
 

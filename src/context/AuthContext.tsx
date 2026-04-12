@@ -5,6 +5,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  isTourShown: boolean;
 }
 
 interface AuthContextType {
@@ -19,6 +20,7 @@ interface AuthContextType {
   logout: () => void;
   clearError: () => void;
   verifyToken: () => Promise<boolean>;
+  markTourShown: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,7 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser({
           id: response.user.id,
           email: response.user.email,
-          name: response.user.email.split('@')[0],
+          name: response.user.name || response.user.email.split('@')[0],
+          isTourShown: !!response.user.isTourShown,
         });
       } catch (err) {
         apiClient.removeToken();
@@ -65,7 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser({
         id: response.user.id,
         email: response.user.email,
-        name: response.user.email.split('@')[0], // Placeholder, ideally get full name
+        name: response.user.name || response.user.email.split('@')[0],
+        isTourShown: !!response.user.isTourShown,
       });
       return true;
     } catch (err) {
@@ -82,7 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await apiClient.signup({ name, email, password, confirmPassword });
       setToken(response.token);
-      setUser(response.user);
+      setUser({
+        id: response.user.id,
+        name: response.user.name,
+        email: response.user.email,
+        isTourShown: !!response.user.isTourShown,
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Signup failed';
       setError(errorMessage);
@@ -98,7 +107,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await apiClient.login({ email, password, forceLogoutPrevious });
       setToken(response.token);
-      setUser(response.user);
+      setUser({
+        id: response.user.id,
+        name: response.user.name,
+        email: response.user.email,
+        isTourShown: !!response.user.isTourShown,
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);
@@ -131,7 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser({
         id: response.user.id,
         email: response.user.email,
-        name: response.user.email.split('@')[0],
+        name: response.user.name || response.user.email.split('@')[0],
+        isTourShown: !!response.user.isTourShown,
       });
       setToken(currentToken);
       return true;
@@ -139,6 +154,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout();
       return false;
     }
+  };
+
+  const markTourShown = async (): Promise<void> => {
+    if (!token || !user) return;
+
+    await apiClient.updateTourStatus(true);
+    setUser({ ...user, isTourShown: true });
   };
 
   const isAuthenticated = !!token && !!user;
@@ -157,6 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         clearError,
         verifyToken,
+        markTourShown,
       }}
     >
       {children}

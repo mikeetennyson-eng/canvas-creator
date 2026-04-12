@@ -157,7 +157,7 @@ export default async function handler(req: any, res: any): Promise<void> {
           res.status(201).json({
             message: 'User created successfully',
             token,
-            user: { id: user._id, name: user.name, email: user.email },
+            user: { id: user._id, name: user.name, email: user.email, isTourShown: !!user.isTourShown },
           });
         } catch (error) {
           console.error('Signup error:', error);
@@ -215,7 +215,7 @@ export default async function handler(req: any, res: any): Promise<void> {
           res.status(200).json({
             message: 'Login successful',
             token,
-            user: { id: user._id, name: user.name, email: user.email },
+            user: { id: user._id, name: user.name, email: user.email, isTourShown: !!user.isTourShown },
           });
         } catch (error) {
           console.error('Login error:', error);
@@ -256,9 +256,48 @@ export default async function handler(req: any, res: any): Promise<void> {
 
           res.status(200).json({
             message: 'Token verified',
-            user: { id: user._id, email: user.email },
+            user: { id: user._id, name: user.name, email: user.email, isTourShown: !!user.isTourShown },
           });
         } catch (error) {
+          res.status(401).json({ message: 'Invalid token' });
+        }
+        return;
+      }
+
+      // Update tour status (one-time onboarding)
+      if (path === '/api/auth/tour-status' && req.method === 'POST') {
+        const authHeader = getHeader(req.headers, 'authorization');
+        const token = authHeader?.split(' ')[1];
+
+        if (!token) {
+          res.status(401).json({ message: 'No token provided' });
+          return;
+        }
+
+        try {
+          const decoded = verifyJWT(token);
+          const user = await User.findById(decoded.id);
+          if (!user || decoded.sid !== user.activeSessionId) {
+            res.status(401).json({ message: 'Session expired. Please login again.' });
+            return;
+          }
+
+          const body = await parseBody(req);
+          const isTourShown = !!body?.isTourShown;
+
+          user.isTourShown = isTourShown;
+          await user.save();
+
+          res.status(200).json({
+            message: 'Tour status updated',
+            user: {
+              id: user._id,
+              name: user.name,
+              email: user.email,
+              isTourShown: !!user.isTourShown,
+            },
+          });
+        } catch {
           res.status(401).json({ message: 'Invalid token' });
         }
         return;
