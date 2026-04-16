@@ -434,6 +434,7 @@ function CanvasText({ element, isSelected, onSelect }: { element: CanvasElement;
   const textRef = useRef<Konva.Text>(null);
   const trRef = useRef<Konva.Transformer>(null);
   const updateElement = useCanvasStore((s) => s.updateElement);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (isSelected && trRef.current && textRef.current) {
@@ -441,6 +442,26 @@ function CanvasText({ element, isSelected, onSelect }: { element: CanvasElement;
       trRef.current.getLayer()?.batchDraw();
     }
   }, [isSelected]);
+
+  const handleDoubleClick = () => {
+    setIsEditing(true);
+    if (textRef.current) {
+      textRef.current.enterEdit();
+      textRef.current.getLayer()?.batchDraw();
+    }
+  };
+
+  const exitEditMode = () => {
+    setIsEditing(false);
+    if (textRef.current) {
+      const newText = textRef.current.text();
+      textRef.current.exitEdit();
+      if (newText !== element.text) {
+        updateElement(element.id, { text: newText });
+      }
+      textRef.current.getLayer()?.batchDraw();
+    }
+  };
 
   return (
     <>
@@ -454,19 +475,26 @@ function CanvasText({ element, isSelected, onSelect }: { element: CanvasElement;
         fill={element.fill || '#1a1a1a'}
         rotation={element.rotation}
         opacity={element.opacity}
-        draggable
+        draggable={!isEditing}
         onClick={onSelect}
         onTap={onSelect}
+        onDoubleClick={handleDoubleClick}
+        onDblTap={handleDoubleClick}
         onDragEnd={(e) => updateElement(element.id, { x: e.target.x(), y: e.target.y() })}
         onTransformEnd={() => {
           const node = textRef.current;
           if (!node) return;
-          updateElement(element.id, { x: node.x(), y: node.y(), fontSize: Math.max(8, (element.fontSize || 16) * node.scaleY()), rotation: node.rotation() });
+          const scaleX = node.scaleX();
+          const scaleY = node.scaleY();
+          // Use average scale for proportional font size scaling
+          const avgScale = (Math.abs(scaleX) + Math.abs(scaleY)) / 2;
+          const newFontSize = Math.max(8, (element.fontSize || 16) * avgScale);
+          updateElement(element.id, { x: node.x(), y: node.y(), fontSize: newFontSize, rotation: node.rotation() });
           node.scaleX(1);
           node.scaleY(1);
         }}
       />
-      {isSelected && <Transformer ref={trRef} rotateEnabled enabledAnchors={['middle-left', 'middle-right']} />}
+      {isSelected && !isEditing && <Transformer ref={trRef} rotateEnabled padding={8} enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']} />}
     </>
   );
 }
